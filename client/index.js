@@ -1,37 +1,39 @@
 $(document).ready(function() {
-    var canvas = document.getElementById("myCanvas");
-    var context = canvas.getContext("2d");
-    var drawing = false;
-    var x;
-    var y;
+
+    console.log("Ready!");
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    //ctx.moveTo(0, 0);
+    //ctx.lineTo(200, 100);
+    //ctx.stroke();
+    drag = false;
+    var startX;
+    var startY;
+    var isDrawing = false;
 
     $("#myCanvas").mousedown(function(e) {
+        var x = e.pageX - this.offsetLeft;
+        var y = e.pageY - this.offsetTop;
 
-        x = e.pageX - this.offsetLeft;
-        y = e.pageY - this.offsetTop;
-
-        drawing = true;
+        startX = x;
+        startY = y;
+        isDrawing = true;
     });
 
     $("#myCanvas").mousemove(function(e) {
-        if (drawing === true) {
-            var endX = e.pageX - x;
-            var endY = e.pageY - y;
+        if (isDrawing === true) {
+            var x = e.pageX - startX;
+            var y = e.pageY - startY;
 
-            context.clearRect(0, 0, 600, 200);
-            context.beginPath();
-            context.moveTo(x, y);
-            context.strokeRect(x, y, endX, endY);
-            context.stroke();
+            ctx.clearRect(0, 0, 500, 200);
+            ctx.strokeRect(startX, startY, x, y);
         }
 
     });
 
     $("#myCanvas").mouseup(function(e) {
-
-        drawing = false;
-
-    });
+        isDrawing = false;
+    })
 
 });
 
