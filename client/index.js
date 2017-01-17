@@ -5,12 +5,33 @@ $(document).ready(function() {
     //ctx.moveTo(0, 0);
     //ctx.lineTo(200, 100);
     //ctx.stroke();
+    drag = false;
+    var startX;
+    var startY;
+    var isDrawing = false;
 
     $("#myCanvas").mousedown(function(e) {
         var x = e.pageX - this.offsetLeft;
         var y = e.pageY - this.offsetTop;
-        console.log("X: " + x + "Y: " + y);
-        ctx.strokeRect(x - 30, y - 30, 50, 50);
+
+        startX = x;
+        startY = y;
+        isDrawing = true;
+    });
+
+    $("#myCanvas").mousemove(function(e) {
+        if (isDrawing === true) {
+            var x = e.pageX - this.offsetLeft;
+            var y = e.pageY - this.offsetTop;
+
+            ctx.clearRect(0, 0, 200, 100);
+            ctx.strokeRect(startX, startY, x, y);
+        }
+
+    });
+
+    $("#myCanvas").mouseup(function(e) {
+        isDrawing = false;
     });
 
 });
