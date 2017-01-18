@@ -25,7 +25,7 @@ $(document).ready(function() {
             var x = e.pageX - startX;
             var y = e.pageY - startY;
 
-            ctx.clearRect(0, 0, 500, 200);
+            ctx.clearRect(0, 0, 600, 200);
             ctx.strokeRect(startX, startY, x, y);
         }
 
