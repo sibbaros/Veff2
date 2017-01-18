@@ -3,6 +3,7 @@ var currShape = undefined;
 var startX;
 var startY;
 var isDrawing = false;
+var clickedshape = undefined;
 
 $(document).ready(function() {
 
@@ -17,6 +18,19 @@ $(document).ready(function() {
         this.height = height;
     }
 
+    $(".Shape").click(function() {
+        clickedshape = $(this).attr('id');
+        $(".Shape").removeClass("active");
+        $(this).addClass("active");
+
+        switch (clickedshape) {
+            case "rect":
+            case "circle":
+        }
+
+    });
+
+
     rectangle.prototype.draw = function() {
         ctx.strokeStyle = "black";
         ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -30,7 +44,16 @@ $(document).ready(function() {
         startX = x;
         startY = y;
         isDrawing = true;
-        currShape = new rectangle(x, y);
+
+        switch (clickedshape) {
+            case "rect":
+                currShape = new rectangle(x, y);
+                break;
+            case "circle":
+                console.log("yolo");
+                break;
+
+        }
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -63,3 +86,30 @@ $(document).ready(function() {
 //git commit -m ""
 //git pull 
 //git push
+
+
+/*$(".Shape").click(function() {
+        shapeclicked = $(this).attr('id');
+        shapes.push(shapeclicked);
+        $(".Shape").removeClass("active");
+        $(this).addClass("active");
+
+        //cange mouse cursor after witch shape was clicked.
+        switch (shapeclicked) {
+            case "rectangle":
+            case "circle":
+            case "line":
+            case "select":
+                document.body.style.cursor = 'crosshair';
+                break;
+            case "text":
+                document.body.style.cursor = 'text';
+                break;
+            case "pencil":
+                document.body.style.cursor = 'url(images/pencil.png), auto';
+                break;
+            case "eraser":
+                document.body.style.cursor = 'url(images/eraser.png), auto';
+                break;
+        }
+    });*/
