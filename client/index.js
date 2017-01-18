@@ -18,6 +18,14 @@ $(document).ready(function() {
         this.height = height;
     }
 
+    function Circle(x, y, radius) {
+        this.x = x;
+        this.y = y;
+        this.radius = 40;
+        this.start = 0;
+        this.end = 2 * Math.PI;
+    }
+
     $(".Shape").click(function() {
         clickedshape = $(this).attr('id');
         $(".Shape").removeClass("active");
@@ -36,6 +44,11 @@ $(document).ready(function() {
         ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
 
+    Circle.prototype.draw = function() {
+        ctx.arc(this.x, this.y, this.width, 0, 2 * Math.PI);
+        ctx.stroke();
+
+    }
     $("#myCanvas").mousedown(function(e) {
         console.log("clicked");
         var x = e.pageX - this.offsetLeft;
@@ -51,6 +64,7 @@ $(document).ready(function() {
                 break;
             case "circle":
                 console.log("yolo");
+                currShape = new Circle(x, y);
                 break;
 
         }
