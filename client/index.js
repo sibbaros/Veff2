@@ -1,9 +1,11 @@
 var drawnShapes = [];
+var undoneShapes = [];
 var currShape = undefined;
 var startX;
 var startY;
 var isDrawing = false;
 var clickedshape = undefined;
+var clickedEvent = undefined;
 
 $(document).ready(function() {
 
@@ -64,6 +66,23 @@ $(document).ready(function() {
 
     });
 
+    $(".Event").click(function() {
+        clickedEvent = $(this).attr('id');
+
+        $(".Event").removeClass("active");
+        $(this).addClass("active");
+
+        switch (clickedEvent) {
+            case "undo":
+                undo();
+                break;
+            case "redo":
+                redo();
+                break;
+
+        }
+    })
+
     $("#myCanvas").mousedown(function(e) {
         console.log("clicked");
         var x = e.pageX - this.offsetLeft;
@@ -82,6 +101,7 @@ $(document).ready(function() {
                 break;
             case "line":
                 currShape = new Line(startX, startY)
+
 
         }
     });
@@ -117,11 +137,37 @@ $(document).ready(function() {
 
     function redraw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        console.log('sup');
+        //console.log('sup');
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
         }
     }
+
+    function undo() {
+    	if(drawnShapes.length === 0){
+    		console.log("There are no shapes to redo");
+    	}
+    	else{
+    		undoneShapes.push(drawnShapes.pop());
+        	redraw();	
+    	}
+        
+
+    }
+
+    function redo() {
+    	if(undoneShapes.length === 0){
+    		console.log("There are no shapes to redo");
+    	}
+    	else{
+    		drawnShapes.push(undoneShapes.pop());
+        	redraw()
+    	}
+       ;
+    }
+
+
+
 
 });
 
