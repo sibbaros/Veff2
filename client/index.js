@@ -89,6 +89,7 @@ $(document).ready(function() {
 
     function redraw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log('sup');
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
         }
