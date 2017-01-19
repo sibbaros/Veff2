@@ -11,19 +11,44 @@ $(document).ready(function() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
 
-    function rectangle(x, y, width, height) {
+    function Rectangle(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
     }
 
-    function Circle(x, y, radius) {
+    function Circle(x, y, radius, sAngle, eAngle) {
         this.x = x;
         this.y = y;
-        this.radius = 40;
-        this.start = 0;
-        this.end = 2 * Math.PI;
+        this.radius = radius;
+        this.sAngle = sAngle;
+        this.eAngle = eAngle;
+    }
+
+    function Line(x1, y1, x2, y2) {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+    }
+
+    Rectangle.prototype.draw = function() {
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
+
+    Circle.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
+        ctx.stroke();
+    }
+
+    Line.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.moveTo(this.x1, this.y1);
+        ctx.lineTo(this.x2, this.y2);
+        ctx.stroke();
     }
 
     $(".Shape").click(function() {
@@ -34,21 +59,11 @@ $(document).ready(function() {
         switch (clickedshape) {
             case "rect":
             case "circle":
+            case "line":
         }
 
     });
 
-
-    rectangle.prototype.draw = function() {
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
-    }
-
-    Circle.prototype.draw = function() {
-        ctx.arc(this.x, this.y, this.width, 0, 2 * Math.PI);
-        ctx.stroke();
-
-    }
     $("#myCanvas").mousedown(function(e) {
         console.log("clicked");
         var x = e.pageX - this.offsetLeft;
@@ -60,22 +75,35 @@ $(document).ready(function() {
 
         switch (clickedshape) {
             case "rect":
-                currShape = new rectangle(x, y);
+                currShape = new Rectangle(x, y);
                 break;
             case "circle":
-                console.log("yolo");
                 currShape = new Circle(x, y);
                 break;
+            case "line":
+                currShape = new Line(startX, startY)
 
         }
     });
 
     $("#myCanvas").mousemove(function(e) {
         if (isDrawing === true) {
-            var w = e.pageX - startX;
-            var h = e.pageY - startY;
-            currShape.width = w;
-            currShape.height = h;
+            if (clickedshape === "rect") {
+                var w = e.pageX - startX;
+                var h = e.pageY - startY;
+                currShape.width = w;
+                currShape.height = h;
+            } else if (clickedshape === "circle") {
+                var dia = e.pageX - startX;
+                currShape.radius = Math.abs(dia / 2);
+                currShape.sAngle = 0;
+                currShape.eAngle = 2 * Math.PI;
+            } else if (clickedshape === "line") {
+                var x2 = e.pageX - this.offsetLeft;
+                var y2 = e.pageY - this.offsetTop;
+                currShape.x2 = x2;
+                currShape.y2 = y2;
+            }
             redraw();
             currShape.draw();
         }
