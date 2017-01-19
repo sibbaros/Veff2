@@ -53,20 +53,35 @@ $(document).ready(function() {
         ctx.stroke();
     }
 
-    function Text(x, y, fonttype, size, color, str) {
+    /*function Text(x, y, fonttype, size, color, str) {
         this.str = str;
         this.x = x;
         this.y = y;
         this.fonttype = fonttype;
         this.size = size;
         this.color = color;
+        //this.str = document.getElementById("text").value();
+       // console.log(value);
     }
 
     Text.prototype.draw = function() {
         ctx.font = this.size + "px " + this.fonttype;
         ctx.fillStyle = this.color;
         ctx.fillText(this.str, this.x, this.y);
+    }*/
+
+    function Text(x, y) {
+    	this.x = x;
+    	this.y = y;
+    	this.str = document.getElementById("text").value;
+
     }
+
+    Text.prototype.draw = function() {
+  	ctx.font = "48px serif";
+  	//console.log("thetta x?")
+  	ctx.fillText("Hello world", this.x, this.y);
+	}
 
     $(".Shape").click(function() {
         clickedshape = $(this).attr('id');
@@ -95,7 +110,6 @@ $(document).ready(function() {
             case "redo":
                 redo();
                 break;
-
         }
     })
 
@@ -121,8 +135,6 @@ $(document).ready(function() {
             case "text":
                 currShape = new Text(x, y);
                 break;
-
-
         }
     });
 
@@ -143,8 +155,9 @@ $(document).ready(function() {
                 var y2 = e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-            }
+            } 
             redraw();
+            //currShape.draw();
             currShape.draw();
         }
     });
@@ -170,8 +183,6 @@ $(document).ready(function() {
             undoneShapes.push(drawnShapes.pop());
             redraw();
         }
-
-
     }
 
     function redo() {
