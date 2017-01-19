@@ -18,12 +18,23 @@ $(document).ready(function() {
         this.height = height;
     }
 
+    Rectangle.prototype.draw = function() {
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
+
     function Circle(x, y, radius, sAngle, eAngle) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.sAngle = sAngle;
         this.eAngle = eAngle;
+    }
+
+    Circle.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
+        ctx.stroke();
     }
 
     function Line(x1, y1, x2, y2) {
@@ -33,22 +44,26 @@ $(document).ready(function() {
         this.y2 = y2;
     }
 
-    Rectangle.prototype.draw = function() {
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
-    }
-
-    Circle.prototype.draw = function() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
-        ctx.stroke();
-    }
-
     Line.prototype.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
         ctx.stroke();
+    }
+
+    function Text(x, y, fonttype, size, color, str) {
+        this.str = str;
+        this.x = x;
+        this.y = y;
+        this.fonttype = fonttype;
+        this.size = size;
+        this.color = color;
+    }
+
+    Text.prototype.draw = function() {
+        ctx.font = this.size + "px " + this.fonttype;
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.str, this.x, this.y);
     }
 
     $(".Shape").click(function() {
@@ -60,6 +75,7 @@ $(document).ready(function() {
             case "rect":
             case "circle":
             case "line":
+            case "text":
         }
 
     });
@@ -82,6 +98,8 @@ $(document).ready(function() {
                 break;
             case "line":
                 currShape = new Line(startX, startY)
+            case "text":
+                currShape = new Text(x, y);
 
         }
     });
