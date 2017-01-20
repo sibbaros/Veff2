@@ -6,12 +6,17 @@ var startY;
 var isDrawing = false;
 var clickedshape = undefined;
 var clickedEvent = undefined;
+var inputbox = undefined;
+var textbox = undefined;
+var typing = false;
 
 $(document).ready(function() {
 
-    console.log("Ready!");
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
+
+    document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
+    document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
 
     function Rectangle(x, y, width, height) {
         this.x = x;
@@ -53,35 +58,56 @@ $(document).ready(function() {
         ctx.stroke();
     }
 
-    /*function Text(x, y, fonttype, size, color, str) {
-        this.str = str;
+    function Text(x, y, str, fonttype, size, color) {
+        //this.str = str;
         this.x = x;
         this.y = y;
-        this.fonttype = fonttype;
-        this.size = size;
-        this.color = color;
+        //this.fonttype = fonttype;
+        //this.size = size;
+        //this.color = color;
         //this.str = document.getElementById("text").value();
-       // console.log(value);
+        // console.log(value);
     }
 
     Text.prototype.draw = function() {
-        ctx.font = this.size + "px " + this.fonttype;
-        ctx.fillStyle = this.color;
+        //ctx.font = this.size + "px " + this.fonttype;
+        //ctx.fillStyle = this.color;
         ctx.fillText(this.str, this.x, this.y);
-    }*/
-
-    function Text(x, y) {
-    	this.x = x;
-    	this.y = y;
-    	this.str = document.getElementById("text").value;
-
     }
 
-    Text.prototype.draw = function() {
-  	ctx.font = "48px serif";
-  	//console.log("thetta x?")
-  	ctx.fillText("Hello world", this.x, this.y);
-	}
+    function showTextbox(x, y) {
+        if (textbox) {
+            textbox.remove();
+        }
+        textbox = $("<textarea id='text'/>"); //$("<input type='text' id='text'/>");
+        textbox.css("position", "fixed");
+        textbox.css("top", y);
+        textbox.css("left", x);
+        //textbox.css("font");
+        //textbox.css("color", "blue");
+        $(".Inputtextbox").append(textbox);
+        textbox.focus();
+    }
+
+    function handleKeyPress(e) {
+        if (typing) {
+            if (e.which == 13 || e.keyCode == 13) {
+                currShape.str = $('#divtextbox').find('textarea').val();
+                drawnShapes.push(currShape);
+                currShape.draw();
+                typing = false;
+                textbox.remove();
+                //currShape.str = $('input:text').val();
+            }
+        }
+    }
+
+    function handleKeyUp(e) {
+        if (e.which === 27 || e.keyCode === 27) {
+            typing = false;
+            textbox.remove();
+        }
+    }
 
     $(".Shape").click(function() {
         clickedshape = $(this).attr('id');
@@ -114,7 +140,6 @@ $(document).ready(function() {
     })
 
     $("#myCanvas").mousedown(function(e) {
-        console.log("clicked");
         var x = e.pageX - this.offsetLeft;
         var y = e.pageY - this.offsetTop;
 
@@ -133,7 +158,9 @@ $(document).ready(function() {
                 currShape = new Line(startX, startY);
                 break;
             case "text":
+                showTextbox(e.clientX, e.clientY);
                 currShape = new Text(x, y);
+                typing = true;
                 break;
         }
     });
@@ -155,16 +182,17 @@ $(document).ready(function() {
                 var y2 = e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-            } 
+            }
             redraw();
-            //currShape.draw();
             currShape.draw();
         }
     });
 
     $("#myCanvas").mouseup(function(e) {
         isDrawing = false;
-        drawnShapes.push(currShape);
+        if (currShape != undefined) {
+            drawnShapes.push(currShape);
+        }
         redraw();
     })
 
