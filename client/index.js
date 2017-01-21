@@ -22,7 +22,7 @@ $(document).ready(function() {
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
 
-        function Rectangle(x, y, width, height) {
+    function Rectangle(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -107,6 +107,7 @@ $(document).ready(function() {
         $(".Inputtextbox").append(textbox);
         textbox.focus();
     }
+
     function handleKeyPress(e) {
         if (typing) {
             if (e.which == 13 || e.keyCode == 13) {
@@ -162,7 +163,10 @@ $(document).ready(function() {
     $("#myCanvas").mousedown(function(e) {
         var x = e.pageX - this.offsetLeft;
         var y = e.pageY - this.offsetTop;
-
+        prevX = currX;
+        prevY = currY;
+        currX = e.clientX - this.offsetLeft;
+        currY = e.clientY - this.offsetTop;
         startX = x;
         startY = y;
         isDrawing = true;
@@ -186,11 +190,11 @@ $(document).ready(function() {
                 currShape = new Pen(prevX, prevY, currX, currY);
                 break;
         }
-        if(clickedEvent == "select"){
+        if (clickedEvent == "select") {
             drag();
         }
 
-      
+
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -269,12 +273,12 @@ $(document).ready(function() {
     }
 
     function drag() {
-    	for(var i = drawnShapes.length - 1; i >= 0; i--) {
-    		if(drawnShapes[i].x == this.x && drawnShapes[i].y == this.y) {
-    			drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
+        for (var i = drawnShapes.length - 1; i >= 0; i--) {
+            if (drawnShapes[i].x == this.x && drawnShapes[i].y == this.y) {
+                drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
                 console.log("hi");
-    		}
-    	}
+            }
+        }
     }
 
 
@@ -286,4 +290,3 @@ $(document).ready(function() {
 //git commit -m ""
 //git pull 
 //git push
-
