@@ -28,12 +28,16 @@ $(document).ready(function() {
         this.width = width;
         this.height = height;
         this.color = "#" + document.getElementById("colorPicker").value;
+        this.lineWid = lineWidthSelector();
+        console.log("constructor: " + lineWidthSelector());
 
     }
 
     Rectangle.prototype.draw = function() {
         ctx.strokeStyle = this.color;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.lineWidth = this.lineWid;
+        //console.log("draw: " + ctx.lineWidth);
     }
 
     function Circle(x, y, radius, sAngle, eAngle) {
@@ -43,6 +47,7 @@ $(document).ready(function() {
         this.sAngle = sAngle;
         this.eAngle = eAngle;
         this.color = "#" + document.getElementById("colorPicker").value;
+        this.lineWidth = lineWidthSelector();
 
     }
 
@@ -50,6 +55,7 @@ $(document).ready(function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
         ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
         ctx.stroke();
     }
 
@@ -58,6 +64,7 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
 
     }
@@ -66,16 +73,7 @@ $(document).ready(function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
-        var lineSize = $('#selectLineWidth').find(':selected').text();
-        if(lineSize == "Thin"){
-            ctx.lineWidth = 1;
-        }
-        else if(lineSize == "Medium"){
-            ctx.lineWidth = 10;
-        }
-        else if(lineSize == "Bold"){
-            ctx.lineWidth = 40;
-        }
+        ctx.lineWidth = this.lineWidth;
         ctx.strokeStyle = this.color;
         ctx.stroke();
     }
@@ -85,6 +83,7 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
 
     }
@@ -94,6 +93,7 @@ $(document).ready(function() {
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
         ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
     }
@@ -102,14 +102,9 @@ $(document).ready(function() {
         //this.str = str;
         this.x = x;
         this.y = y;
-        //this.fonttype = fonttype;
         this.size = parseInt($('#selectFontSize').find(':selected').text());
         this.fonttype =  $('#selectFontFamily').find(':selected').text();
         this.color = "#" + document.getElementById("colorPicker").value;
-
-
-        console.log("size is " + this.size);
-        //this.color = color;
         //this.str = document.getElementById("text").value();
         // console.log(value);
     }
@@ -141,16 +136,7 @@ $(document).ready(function() {
         textbox.focus();
     }
 
-<<<<<<< HEAD
-    /*function updateh1family() {
-         var selector = document.getElementById('selecth1FontFamily');
-        var family = selector.options[selector.selectedIndex].value; 
-        textbox.css("font", family);
-    }*/
 
-
-=======
->>>>>>> 09ac820992a8ccfc4486b583a0cc8ae566b6de7c
     function handleKeyPress(e) {
         if (typing) {
             if (e.which == 13 || e.keyCode == 13) {
@@ -322,6 +308,22 @@ $(document).ready(function() {
                 console.log("hi");
             }
         }
+    }
+
+    function lineWidthSelector(){
+        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+            if(lineSizeSelector == "Thin"){
+                lineSize = 1;
+            }
+            else if(lineSizeSelector == "Medium"){
+                lineSize = 10;
+            }
+            else if(lineSizeSelector == "Bold"){
+                lineSize = 40;
+            }
+        console.log(lineSize);
+        return lineSize;
     }
 
 
