@@ -183,7 +183,8 @@ $(document).ready(function() {
                 typing = true;
                 break;
             case "pen":
-                currShape = new Pen(prevX, prevY, currX, currY)
+                currShape = new Pen(prevX, prevY, currX, currY);
+                break;
         }
     });
 
@@ -208,6 +209,8 @@ $(document).ready(function() {
                 var y2 = e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
+                redraw();
+                currShape.draw();
             } else if (clickedshape === "pen") {
                 prevX = currX;
                 prevY = currY;
@@ -217,12 +220,14 @@ $(document).ready(function() {
                 currShape.y1 = prevY;
                 currShape.x2 = currX;
                 currShape.y2 = currY;
+                redraw();
+                currShape.draw();
             } else if (clickedshape === "text") {
                 typing = false;
                 isDrawing = false;
             }
-            redraw();
-            currShape.draw();
+            //redraw();
+            //currShape.draw();
         }
     });
 
