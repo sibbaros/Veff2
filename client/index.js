@@ -27,10 +27,12 @@ $(document).ready(function() {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Rectangle.prototype.draw = function() {
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = this.color;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
 
@@ -40,11 +42,14 @@ $(document).ready(function() {
         this.radius = radius;
         this.sAngle = sAngle;
         this.eAngle = eAngle;
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Circle.prototype.draw = function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
+        ctx.strokeStyle = this.color;
         ctx.stroke();
     }
 
@@ -53,12 +58,25 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Line.prototype.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
+        var lineSize = $('#selectLineWidth').find(':selected').text();
+        if(lineSize == "Thin"){
+            ctx.lineWidth = 1;
+        }
+        else if(lineSize == "Medium"){
+            ctx.lineWidth = 10;
+        }
+        else if(lineSize == "Bold"){
+            ctx.lineWidth = 40;
+        }
+        ctx.strokeStyle = this.color;
         ctx.stroke();
     }
 
@@ -67,12 +85,15 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Pen.prototype.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
+        ctx.strokeStyle = this.color;
         ctx.stroke();
         ctx.closePath();
     }
@@ -82,15 +103,20 @@ $(document).ready(function() {
         this.x = x;
         this.y = y;
         //this.fonttype = fonttype;
-        //this.size = size;
+        this.size = parseInt($('#selectFontSize').find(':selected').text());
+        this.fonttype =  $('#selectFontFamily').find(':selected').text();
+        this.color = "#" + document.getElementById("colorPicker").value;
+
+
+        console.log("size is " + this.size);
         //this.color = color;
         //this.str = document.getElementById("text").value();
         // console.log(value);
     }
 
     Text.prototype.draw = function() {
-        //ctx.font = this.size + "px " + this.fonttype;
-        //ctx.fillStyle = this.color;
+        ctx.font = this.size + "px " + this.fonttype;
+        ctx.fillStyle = this.color;
         ctx.fillText(this.str, this.x, this.y);
     }
 
@@ -98,15 +124,30 @@ $(document).ready(function() {
         if (textbox) {
             textbox.remove();
         }
+
         textbox = $("<textarea id='text'/>"); //$("<input type='text' id='text'/>");
+        var size = $('#selectFontSize').find(':selected').text();
+        var font = $('#selectFontFamily').find(':selected').text();
+        var color = "#" + document.getElementById("colorPicker").value;
+
+
         textbox.css("position", "fixed");
         textbox.css("top", y);
         textbox.css("left", x);
-        //textbox.css("font");
-        //textbox.css("color", "blue");
+        textbox.css("fontSize", parseInt(size));
+        textbox.css("font-family",font);
+        textbox.css("color", color);
         $(".Inputtextbox").append(textbox);
         textbox.focus();
     }
+
+    /*function updateh1family() {
+         var selector = document.getElementById('selecth1FontFamily');
+        var family = selector.options[selector.selectedIndex].value; 
+        textbox.css("font", family);
+    }*/
+
+
     function handleKeyPress(e) {
         if (typing) {
             if (e.which == 13 || e.keyCode == 13) {
