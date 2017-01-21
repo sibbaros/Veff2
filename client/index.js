@@ -178,9 +178,6 @@ $(document).ready(function() {
             case "line":
                 currShape = new Line(startX, startY);
                 break;
-            case "pen":
-                ctx.moveTo(e.clientX, e.clientY);
-                break;
             case "text":
                 showTextbox(e.clientX, e.clientY);
                 currShape = new Text(x, y);
@@ -217,8 +214,8 @@ $(document).ready(function() {
             } else if (clickedshape === "pen") {
                 prevX = currX;
                 prevY = currY;
-                currX = e.clientX - this.offsetLeft;
-                currY = e.clientY - this.offsetTop;
+                currX = e.pageX - this.offsetLeft;
+                currY = e.pageY - this.offsetTop;
                 currShape.x1 = prevX;
                 currShape.y1 = prevY;
                 currShape.x2 = currX;
@@ -227,8 +224,8 @@ $(document).ready(function() {
                 typing = false;
                 isDrawing = false;
             }
-            //redraw();
-            //currShape.draw();
+            redraw();
+            currShape.draw();
         }
     });
 
