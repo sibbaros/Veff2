@@ -13,6 +13,7 @@ var clickedEvent = undefined;
 var inputbox = undefined;
 var textbox = undefined;
 var typing = false;
+var fabric1;
 
 $(document).ready(function() {
 
@@ -187,8 +188,11 @@ $(document).ready(function() {
                 currShape = new Pen(prevX, prevY, currX, currY);
                 break;
         }
+        if (clickedEvent == "select") {
+            drag();
+        }
 
-        drag();
+
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -253,8 +257,12 @@ $(document).ready(function() {
     }
 
     function undo() {
+        if (clickedshape === "text") {
+            typing = false;
+            textbox.remove();
+        }
         if (drawnShapes.length === 0) {
-            console.log("There are no shapes to redo");
+            console.log("There are no shapes to undo");
         } else {
             undoneShapes.push(drawnShapes.pop());
             redraw();
@@ -271,11 +279,12 @@ $(document).ready(function() {
     }
 
     function drag() {
-    	for(var i = drawnShapes.length - 1; i >= 0; i--) {
-    		if(drawnShapes[i].x == this.x & drawnShapes[i].y == this.y) {
-    			drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
-    		}
-    	}
+        for (var i = drawnShapes.length - 1; i >= 0; i--) {
+            if (drawnShapes[i].x == this.x && drawnShapes[i].y == this.y) {
+                drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
+                console.log("hi");
+            }
+        }
     }
 
 
@@ -287,30 +296,3 @@ $(document).ready(function() {
 //git commit -m ""
 //git pull 
 //git push
-
-
-/*$(".Shape").click(function() {
-        shapeclicked = $(this).attr('id');
-        shapes.push(shapeclicked);
-        $(".Shape").removeClass("active");
-        $(this).addClass("active");
-
-        //cange mouse cursor after witch shape was clicked.
-        switch (shapeclicked) {
-            case "rectangle":
-            case "circle":
-            case "line":
-            case "select":
-                document.body.style.cursor = 'crosshair';
-                break;
-            case "text":
-                document.body.style.cursor = 'text';
-                break;
-            case "pencil":
-                document.body.style.cursor = 'url(images/pencil.png), auto';
-                break;
-            case "eraser":
-                document.body.style.cursor = 'url(images/eraser.png), auto';
-                break;
-        }
-    });*/
