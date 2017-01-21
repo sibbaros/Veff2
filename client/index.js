@@ -158,6 +158,9 @@ $(document).ready(function() {
             case "line":
                 currShape = new Line(startX, startY);
                 break;
+            case "pen":
+                ctx.moveTo(e.clientX, e.clientY);
+                break;
             case "text":
                 showTextbox(e.clientX, e.clientY);
                 currShape = new Text(x, y);
@@ -175,19 +178,33 @@ $(document).ready(function() {
                 var h = e.pageY - startY;
                 currShape.width = w;
                 currShape.height = h;
+                redraw();
+                currShape.draw();
             } else if (clickedshape === "circle") {
                 var dia = e.pageX - startX;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
+                redraw();
+                currShape.draw();
             } else if (clickedshape === "line") {
                 var x2 = e.pageX - this.offsetLeft;
                 var y2 = e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
+                redraw();
+                currShape.draw();
+            } else if (clickedshape === "pen") {
+                ctx.lineTo(e.clientX, e.clientY);
+                ctx.stroke();
+                redraw();
+                currShape.draw();
+            } else if (clickedshape === "text") {
+                typing = false;
+                isDrawing = false;
             }
-            redraw();
-            currShape.draw();
+            //redraw();
+            //currShape.draw();
         }
     });
 
