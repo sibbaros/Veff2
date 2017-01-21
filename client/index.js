@@ -3,6 +3,10 @@ var undoneShapes = [];
 var currShape = undefined;
 var startX;
 var startY;
+var prevX;
+var currX;
+var prevY;
+var currY;
 var isDrawing = false;
 var clickedshape = undefined;
 var clickedEvent = undefined;
@@ -56,6 +60,21 @@ $(document).ready(function() {
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
         ctx.stroke();
+    }
+
+    function Pen(x1, y1, x2, y2) {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+    }
+
+    Pen.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.moveTo(this.x1, this.y1);
+        ctx.lineTo(this.x2, this.y2);
+        ctx.stroke();
+        ctx.closePath();
     }
 
     function Text(x, y, str, fonttype, size, color) {
@@ -119,6 +138,7 @@ $(document).ready(function() {
             case "circle":
             case "line":
             case "text":
+            case "pen":
         }
 
     });
@@ -166,6 +186,8 @@ $(document).ready(function() {
                 currShape = new Text(x, y);
                 typing = true;
                 break;
+            case "pen":
+                currShape = new Pen(prevX, prevY, currX, currY)
         }
 
         drag();
@@ -192,13 +214,15 @@ $(document).ready(function() {
                 var y2 = e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-                redraw();
-                currShape.draw();
             } else if (clickedshape === "pen") {
-                ctx.lineTo(e.clientX, e.clientY);
-                ctx.stroke();
-                redraw();
-                currShape.draw();
+                prevX = currX;
+                prevY = currY;
+                currX = e.clientX - this.offsetLeft;
+                currY = e.clientY - this.offsetTop;
+                currShape.x1 = prevX;
+                currShape.y1 = prevY;
+                currShape.x2 = currX;
+                currShape.y2 = currY;
             } else if (clickedshape === "text") {
                 typing = false;
                 isDrawing = false;
@@ -217,7 +241,9 @@ $(document).ready(function() {
     })
 
     function redraw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (clickedshape != "pen") {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
         //console.log('sup');
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
