@@ -156,6 +156,7 @@ $(document).ready(function() {
             case "redo":
                 redo();
                 break;
+            case "select":
         }
     })
 
@@ -186,6 +187,8 @@ $(document).ready(function() {
                 currShape = new Pen(prevX, prevY, currX, currY);
                 break;
         }
+
+        drag();
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -265,6 +268,14 @@ $(document).ready(function() {
             drawnShapes.push(undoneShapes.pop());
             redraw()
         };
+    }
+
+    function drag() {
+    	for(var i = drawnShapes.length - 1; i >= 0; i--) {
+    		if(drawnShapes[i].x == this.x & drawnShapes[i].y == this.y) {
+    			drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
+    		}
+    	}
     }
 
 
