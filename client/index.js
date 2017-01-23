@@ -20,6 +20,22 @@ $(document).ready(function() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
 
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.lineTo(100, 120);
+    ctx.lineTo(120, 120);
+    ctx.lineTo(120, 140);
+    ctx.lineTo(100, 140);
+    ctx.lineTo(100, 160);
+    ctx.lineTo(80, 160);
+    ctx.lineTo(80, 140);
+    ctx.lineTo(60, 140);
+    ctx.lineTo(60, 120);
+    ctx.lineTo(80, 120);
+    ctx.lineTo(80, 100);
+    ctx.lineTo(100, 100);
+    ctx.stroke();
+
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
 
@@ -28,11 +44,17 @@ $(document).ready(function() {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.color = "#" + document.getElementById("colorPicker").value;
+        this.lineWid = lineWidthSelector();
+        console.log("constructor: " + lineWidthSelector());
+
     }
 
     Rectangle.prototype.draw = function() {
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = this.color;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.lineWidth = this.lineWid;
+        //console.log("draw: " + ctx.lineWidth);
     }
 
     function Circle(x, y, radius, sAngle, eAngle) {
@@ -41,11 +63,16 @@ $(document).ready(function() {
         this.radius = radius;
         this.sAngle = sAngle;
         this.eAngle = eAngle;
+        this.color = "#" + document.getElementById("colorPicker").value;
+        this.lineWidth = lineWidthSelector();
+
     }
 
     Circle.prototype.draw = function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, this.sAngle, this.eAngle);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
         ctx.stroke();
     }
 
@@ -54,12 +81,17 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.lineWidth = lineWidthSelector();
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Line.prototype.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
+        ctx.lineWidth = this.lineWidth;
+        ctx.strokeStyle = this.color;
         ctx.stroke();
     }
 
@@ -68,12 +100,17 @@ $(document).ready(function() {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.lineWidth = lineWidthSelector();
+        this.color = "#" + document.getElementById("colorPicker").value;
+
     }
 
     Pen.prototype.draw = function() {
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
     }
@@ -82,16 +119,16 @@ $(document).ready(function() {
         //this.str = str;
         this.x = x;
         this.y = y;
-        //this.fonttype = fonttype;
-        //this.size = size;
-        //this.color = color;
+        this.size = parseInt($('#selectFontSize').find(':selected').text());
+        this.fonttype = $('#selectFontFamily').find(':selected').text();
+        this.color = "#" + document.getElementById("colorPicker").value;
         //this.str = document.getElementById("text").value();
         // console.log(value);
     }
 
     Text.prototype.draw = function() {
-        //ctx.font = this.size + "px " + this.fonttype;
-        //ctx.fillStyle = this.color;
+        ctx.font = this.size + "px " + this.fonttype;
+        ctx.fillStyle = this.color;
         ctx.fillText(this.str, this.x, this.y);
     }
 
@@ -99,12 +136,19 @@ $(document).ready(function() {
         if (textbox) {
             textbox.remove();
         }
+
         textbox = $("<textarea id='text'/>"); //$("<input type='text' id='text'/>");
+        var size = $('#selectFontSize').find(':selected').text();
+        var font = $('#selectFontFamily').find(':selected').text();
+        var color = "#" + document.getElementById("colorPicker").value;
+
+
         textbox.css("position", "fixed");
         textbox.css("top", y);
         textbox.css("left", x);
-        //textbox.css("font");
-        //textbox.css("color", "blue");
+        textbox.css("fontSize", parseInt(size));
+        textbox.css("font-family", font);
+        textbox.css("color", color);
         $(".Inputtextbox").append(textbox);
         textbox.focus();
     }
@@ -164,7 +208,10 @@ $(document).ready(function() {
     $("#myCanvas").mousedown(function(e) {
         var x = e.pageX - this.offsetLeft;
         var y = e.pageY - this.offsetTop;
-
+        prevX = currX;
+        prevY = currY;
+        currX = e.clientX - this.offsetLeft;
+        currY = e.clientY - this.offsetTop;
         startX = x;
         startY = y;
         isDrawing = true;
@@ -285,6 +332,21 @@ $(document).ready(function() {
                 console.log("hi");
             }
         }
+
+    }
+
+    function lineWidthSelector() {
+        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+        if (lineSizeSelector == "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector == "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector == "Bold") {
+            lineSize = 40;
+        }
+        console.log(lineSize);
+        return lineSize;
     }
 
 
