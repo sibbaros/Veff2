@@ -103,7 +103,7 @@ $(document).ready(function() {
         this.x = x;
         this.y = y;
         this.size = parseInt($('#selectFontSize').find(':selected').text());
-        this.fonttype =  $('#selectFontFamily').find(':selected').text();
+        this.fonttype = $('#selectFontFamily').find(':selected').text();
         this.color = "#" + document.getElementById("colorPicker").value;
         //this.str = document.getElementById("text").value();
         // console.log(value);
@@ -130,7 +130,7 @@ $(document).ready(function() {
         textbox.css("top", y);
         textbox.css("left", x);
         textbox.css("fontSize", parseInt(size));
-        textbox.css("font-family",font);
+        textbox.css("font-family", font);
         textbox.css("color", color);
         $(".Inputtextbox").append(textbox);
         textbox.focus();
@@ -194,8 +194,8 @@ $(document).ready(function() {
         var y = e.pageY - this.offsetTop;
         prevX = currX;
         prevY = currY;
-        currX = e.clientX - this.offsetLeft;
-        currY = e.clientY - this.offsetTop;
+        currX = e.pageX - this.offsetLeft;
+        currY = e.pageY - this.offsetTop;
         startX = x;
         startY = y;
         isDrawing = true;
@@ -310,26 +310,54 @@ $(document).ready(function() {
         }
     }
 
-    function lineWidthSelector(){
+    function lineWidthSelector() {
         var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
 
-            if(lineSizeSelector == "Thin"){
-                lineSize = 1;
-            }
-            else if(lineSizeSelector == "Medium"){
-                lineSize = 10;
-            }
-            else if(lineSizeSelector == "Bold"){
-                lineSize = 40;
-            }
+        if (lineSizeSelector == "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector == "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector == "Bold") {
+            lineSize = 40;
+        }
         console.log(lineSize);
         return lineSize;
     }
 
-
+    var url = "http://localhost:3000/api/drawings";
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: url,
+        data: JSON.stringify(drawing),
+        success: function(data) {
+            console.log(data);
+            // The drawing was successfully saved
+        },
+        error: function(xhr, err) {
+            console.log('Error occurred in the operation');
+            // The drawing could NOT be saved
+        }
+    });
 
 
 });
+
+
+/*http://localhost:3000/api/drawings - GET
+Returns a list of all drawings. Each item in the list contains the properties id and title
+ 
+http://localhost:3000/api/drawings/{id} - GET
+Returns a single drawing, both the title and id, as well as the content of the drawing, and the created date.
+ 
+http://localhost:3000/api/drawings - POST
+Adds a single drawing to the in-memory database. The body of the request should 
+contain the following two properties: "title" and "content". Example:
+
+
+*/
+
+
 
 //git add .
 //git commit -m ""
