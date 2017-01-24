@@ -1,5 +1,6 @@
 var drawnShapes = [];
 var undoneShapes = [];
+var penDrawings = [];
 var currShape = undefined;
 var startX;
 var startY;
@@ -29,15 +30,12 @@ $(document).ready(function() {
         this.height = height;
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWid = lineWidthSelector();
-        console.log("constructor: " + lineWidthSelector());
-
     }
 
     Rectangle.prototype.draw = function() {
         ctx.strokeStyle = this.color;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
         ctx.lineWidth = this.lineWid;
-        //console.log("draw: " + ctx.lineWidth);
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
 
     function Circle(x, y, radius, sAngle, eAngle) {
@@ -66,7 +64,6 @@ $(document).ready(function() {
         this.y2 = y2;
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
-
     }
 
     Line.prototype.draw = function() {
@@ -85,7 +82,6 @@ $(document).ready(function() {
         this.y2 = y2;
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
-
     }
 
     Pen.prototype.draw = function() {
@@ -96,17 +92,39 @@ $(document).ready(function() {
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
+        penDrawings.push({
+            type: pen,
+            x1: this.x1, 
+            x2: this.x2, 
+            y1: this.y1, 
+            y2: this.y2});
+        console.log(penDrawings);
+    }
+
+    var pen = {
+
+        points : penDrawings
+             
+    }
+
+    pen.draw = function() {
+
+        for (var i = 0; i < penDrawings.length; i++) {
+            ctx.moveTo(pen.points[i].x1, pen.points[i].y1);
+            ctx.lineTo(pen.points[i].x2, pen.points[i].y2);
+            ctx.strokeStyle = pen.points[i].color;
+            ctx.lineWidth = pen.points[i].lineWidth;
+            ctx.stroke();
+            ctx.closePath();
+        }
     }
 
     function Text(x, y, str, fonttype, size, color) {
-        //this.str = str;
         this.x = x;
         this.y = y;
         this.size = parseInt($('#selectFontSize').find(':selected').text());
         this.fonttype =  $('#selectFontFamily').find(':selected').text();
         this.color = "#" + document.getElementById("colorPicker").value;
-        //this.str = document.getElementById("text").value();
-        // console.log(value);
     }
 
     Text.prototype.draw = function() {
@@ -169,7 +187,6 @@ $(document).ready(function() {
             case "text":
             case "pen":
         }
-
     });
 
     $(".Event").click(function() {
@@ -217,13 +234,12 @@ $(document).ready(function() {
                 break;
             case "pen":
                 currShape = new Pen(prevX, prevY, currX, currY);
+                penDrawings.push(currShape);
                 break;
         }
         if (clickedEvent == "select") {
             drag();
         }
-
-
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -233,15 +249,11 @@ $(document).ready(function() {
                 var h = e.pageY - startY;
                 currShape.width = w;
                 currShape.height = h;
-                redraw();
-                currShape.draw();
             } else if (clickedshape === "circle") {
                 var dia = e.pageX - startX;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
-                redraw();
-                currShape.draw();
             } else if (clickedshape === "line") {
                 var x2 = e.pageX - this.offsetLeft;
                 var y2 = e.pageY - this.offsetTop;
@@ -267,9 +279,24 @@ $(document).ready(function() {
 
     $("#myCanvas").mouseup(function(e) {
         isDrawing = false;
-        if (currShape != undefined) {
-            drawnShapes.push(currShape);
+        
+        if(clickedshape === "pen") {
+            console.log("drawings", penDrawings);
+           /* var pen = {
+
+
+                points : penDrawings
+
+
+            }*/
+            drawnShapes.push(pen);
         }
+        else {
+            console.log("currShape", currShape);
+            drawnShapes.push(currShape); 
+        }
+        
+        
         redraw();
     })
 
@@ -277,15 +304,15 @@ $(document).ready(function() {
         if (clickedshape != "pen") {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-        //console.log('sup');
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
         }
+       
     }
 
     function undo() {
         if (drawnShapes.length === 0) {
-            console.log("There are no shapes to redo");
+            console.log("There are no shapes to undo");
         } else {
             undoneShapes.push(drawnShapes.pop());
             redraw();
@@ -303,8 +330,8 @@ $(document).ready(function() {
 
     function drag() {
         for (var i = drawnShapes.length - 1; i >= 0; i--) {
-            if (drawnShapes[i].x == this.x && drawnShapes[i].y == this.y) {
-                drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
+            if (drawnShapes[i].x === this.x && drawnShapes[i].y === this.y) {
+                drawnShapes[i].x === 0 & drawnShapes[i].y === 0;
                 console.log("hi");
             }
         }
@@ -313,20 +340,17 @@ $(document).ready(function() {
     function lineWidthSelector(){
         var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
 
-            if(lineSizeSelector == "Thin"){
+            if(lineSizeSelector === "Thin"){
                 lineSize = 1;
             }
-            else if(lineSizeSelector == "Medium"){
+            else if(lineSizeSelector === "Medium"){
                 lineSize = 10;
             }
-            else if(lineSizeSelector == "Bold"){
+            else if(lineSizeSelector === "Bold"){
                 lineSize = 40;
             }
-        console.log(lineSize);
         return lineSize;
     }
-
-
 
 
 });
