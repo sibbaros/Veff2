@@ -1,5 +1,6 @@
 var drawnShapes = [];
 var undoneShapes = [];
+var penDrawings = [];
 var currShape = undefined;
 
 var prevX;
@@ -42,16 +43,13 @@ $(document).ready(function() {
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWid = lineWidthSelector();
         this.isDragging = false;
-
         //console.log("constructor: " + lineWidthSelector());
-
     }
 
     Rectangle.prototype.draw = function() {
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.lineWid;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
-        //console.log("draw: " + ctx.lineWidth);
     }
 
     function Circle(x, y, radius, sAngle, eAngle) {
@@ -80,7 +78,6 @@ $(document).ready(function() {
         this.y2 = y2;
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
-
     }
 
     Line.prototype.draw = function() {
@@ -99,7 +96,6 @@ $(document).ready(function() {
         this.y2 = y2;
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
-
     }
 
     Pen.prototype.draw = function() {
@@ -110,17 +106,40 @@ $(document).ready(function() {
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
+        penDrawings.push({
+            type: pen,
+            x1: this.x1,
+            x2: this.x2,
+            y1: this.y1,
+            y2: this.y2
+        });
+        console.log(penDrawings);
+    }
+
+    var pen = {
+
+        points: penDrawings
+
+    }
+
+    pen.draw = function() {
+
+        for (var i = 0; i < penDrawings.length; i++) {
+            ctx.moveTo(pen.points[i].x1, pen.points[i].y1);
+            ctx.lineTo(pen.points[i].x2, pen.points[i].y2);
+            ctx.strokeStyle = pen.points[i].color;
+            ctx.lineWidth = pen.points[i].lineWidth;
+            ctx.stroke();
+            ctx.closePath();
+        }
     }
 
     function Text(x, y, str, fonttype, size, color) {
-        //this.str = str;
         this.x = x;
         this.y = y;
         this.size = parseInt($('#selectFontSize').find(':selected').text());
         this.fonttype = $('#selectFontFamily').find(':selected').text();
         this.color = "#" + document.getElementById("colorPicker").value;
-        //this.str = document.getElementById("text").value();
-        // console.log(value);
     }
 
     Text.prototype.draw = function() {
@@ -182,7 +201,6 @@ $(document).ready(function() {
             case "text":
             case "pen":
         }
-
     });
 
     $(".Event").click(function() {
@@ -207,8 +225,11 @@ $(document).ready(function() {
         var y = e.pageY - this.offsetTop;
         prevX = currX;
         prevY = currY;
-        currX = e.clientX - this.offsetLeft;
-        currY = e.clientY - this.offsetTop;
+
+        //currX = e.clientX - this.offsetLeft;
+        //currY = e.clientY - this.offsetTop;
+        currX = e.pageX - this.offsetLeft;
+        currY = e.pageY - this.offsetTop;
         //startX = x;
         //startY = y;
         isDrawing = true;
@@ -246,6 +267,7 @@ $(document).ready(function() {
         //}
         mouseStartX = mx;
         mouseStartY = my;
+
         isDrawing = true;
 
         switch (clickedshape) {
@@ -265,12 +287,12 @@ $(document).ready(function() {
                 break;
             case "pen":
                 currShape = new Pen(prevX, prevY, currX, currY);
+                penDrawings.push(currShape);
                 break;
         }
         //if (clickedEvent == "select") {
         //  drag();
         //}
-
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -316,8 +338,6 @@ $(document).ready(function() {
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
-                redraw();
-                currShape.draw();
             } else if (clickedshape === "line") {
                 var x2 = e.clientX - offsetX; //e.pageX - this.offsetLeft;
                 var y2 = e.clientY - offsetY; //e.pageY - this.offsetTop;
@@ -357,11 +377,16 @@ $(document).ready(function() {
         isDrawing = false;
         if (currShape !== undefined) {
             drawnShapes.push(currShape);
+        } else if (clickedshape === "pen") {
+            console.log("drawings", penDrawings);
+
+            drawnShapes.push(pen);
         }
 
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
         }
+
         redraw();
     })
 
@@ -369,10 +394,10 @@ $(document).ready(function() {
         if (clickedshape !== "pen") {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-        //console.log('sup');
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
         }
+
     }
 
     function undo() {
@@ -399,8 +424,8 @@ $(document).ready(function() {
 
     function drag() {
         for (var i = drawnShapes.length - 1; i >= 0; i--) {
-            if (drawnShapes[i].x == this.x && drawnShapes[i].y == this.y) {
-                drawnShapes[i].x == 0 & drawnShapes[i].y == 0;
+            if (drawnShapes[i].x === this.x && drawnShapes[i].y === this.y) {
+                drawnShapes[i].x === 0 & drawnShapes[i].y === 0;
                 console.log("hi");
             }
         }
@@ -417,14 +442,44 @@ $(document).ready(function() {
         } else if (lineSizeSelector == "Bold") {
             lineSize = 40;
         }
-        //console.log(lineSize);
+        console.log(lineSize);
         return lineSize;
     }
 
-
+    /* var url = "http://localhost:3000/api/drawings";
+     $.ajax({
+         type: "POST",
+         contentType: "application/json; charset=utf-8",
+         url: url,
+         data: JSON.stringify(drawing),
+         success: function(data) {
+             console.log(data);
+             // The drawing was successfully saved
+         },
+         error: function(xhr, err) {
+             console.log('Error occurred in the operation');
+             // The drawing could NOT be saved
+         }
+     });*/
 
 
 });
+
+
+/*http://localhost:3000/api/drawings - GET
+Returns a list of all drawings. Each item in the list contains the properties id and title
+ 
+http://localhost:3000/api/drawings/{id} - GET
+Returns a single drawing, both the title and id, as well as the content of the drawing, and the created date.
+ 
+http://localhost:3000/api/drawings - POST
+Adds a single drawing to the in-memory database. The body of the request should 
+contain the following two properties: "title" and "content". Example:
+
+
+*/
+
+
 
 //git add .
 //git commit -m ""
