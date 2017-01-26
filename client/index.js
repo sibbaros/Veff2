@@ -290,6 +290,7 @@ $(document).ready(function() {
 
             }*/
             drawnShapes.push(pen);
+            //penDrawings = [];
         }
         else {
             console.log("currShape", currShape);
@@ -340,6 +341,7 @@ $(document).ready(function() {
     function lineWidthSelector(){
         var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
 
+            ctx.lineJoin = ctx.lineCap = "round";
             if(lineSizeSelector === "Thin"){
                 lineSize = 1;
             }
