@@ -475,24 +475,31 @@ $(document).ready(function() {
         console.log(lineSize);
         return lineSize;
     }
+    $("#save").click(function() {
 
-    /* var url = "http://localhost:3000/api/drawings";
-     $.ajax({
-         type: "POST",
-         contentType: "application/json; charset=utf-8",
-         url: url,
-         data: JSON.stringify(drawing),
-         success: function(data) {
-             console.log(data);
-             // The drawing was successfully saved
-         },
-         error: function(xhr, err) {
-             console.log('Error occurred in the operation');
-             // The drawing could NOT be saved
-         }
-     });*/
+        var drawing = {
+            title: "Nú er gaman",
+            content: "the contents of the shapes array"
+        };
 
+        var url = "http://localhost:3000/api/drawings";
 
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: url,
+            data: JSON.stringify(drawing),
+            success: function(data) {
+                console.log(data);
+                // The drawing was successfully saved
+            },
+            error: function(xhr, err) {
+                console.log('Error occurred in the operation ');
+                // The drawing could NOT be saved
+            }
+        });
+
+    });
 });
 
 
