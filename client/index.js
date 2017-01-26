@@ -1,12 +1,7 @@
 var drawnShapes = [];
 var undoneShapes = [];
-var penDrawings = [];
 var currShape = undefined;
 
-var prevX;
-var currX;
-var prevY;
-var currY;
 var isDrawing = false;
 var clickedshape = undefined;
 var clickedEvent = undefined;
@@ -31,6 +26,7 @@ $(document).ready(function() {
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
     var offsetY = BB.top;
+    clickedshape = "pen";
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
@@ -44,7 +40,6 @@ $(document).ready(function() {
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWid = lineWidthSelector();
         this.isDragging = false;
-        //console.log("constructor: " + lineWidthSelector());
     }
 
     Rectangle.prototype.draw = function() {
@@ -97,7 +92,12 @@ $(document).ready(function() {
         this.y = y;
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
-        this.color = "#" + document.getElementById("colorPicker").value;
+        if (clickedshape === "eraser") {
+            this.color = "white";
+        } else {
+            this.color = "#" + document.getElementById("colorPicker").value;
+
+        }
     }
 
     Pen.prototype.addPoint = function(x, y) {
@@ -123,6 +123,7 @@ $(document).ready(function() {
         this.y = y;
         return this;
     }
+
 
     function Text(x, y, str, fonttype, size, color) {
         this.shape = 'text';
@@ -192,6 +193,7 @@ $(document).ready(function() {
             case "text":
             case "pen":
             case "select":
+            case "eraser":
         }
     });
 
@@ -252,8 +254,10 @@ $(document).ready(function() {
                 currShape = new Pen(x, y);
                 isDrawing = true;
                 break;
+            case "eraser":
+                currShape = new Pen(x, y);
+                break;
         }
-
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -322,10 +326,9 @@ $(document).ready(function() {
                 var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
+            } else if (clickedshape === "pen" || clickedshape === "eraser") {
 
-            } else if (clickedshape === "pen") {
                 currShape.addPoint(x, y);
-
             }
 
 
@@ -410,77 +413,109 @@ $(document).ready(function() {
 
             } else if (s.shape === 'text') {
 
+
             }
-            mouseStartX = mx;
-            mouseStartY = my;
         }
+        mouseStartX = mx;
+        mouseStartY = my;
+    }
+}
+
+
+function undo() {
+    if (clickedshape === "text") {
+        typing = false;
+        textbox.remove();
+    }
+    if (drawnShapes.length === 0) {
+        console.log("There are no shapes to undo");
+    } else {
+        undoneShapes.push(drawnShapes.pop());
+        redraw();
+    }
+}
+
+function redo() {
+    if (undoneShapes.length === 0) {
+        console.log("There are no shapes to redo");
+    } else {
+        drawnShapes.push(undoneShapes.pop());
+        redraw()
+    };
+}
+
+
+
+function lineWidthSelector() {
+    var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+
+    ctx.lineJoin = ctx.lineCap = "round";
+    if (lineSizeSelector === "Thin") {
+        lineSize = 1;
+    } else if (lineSizeSelector === "Medium") {
+        lineSize = 10;
+    } else if (lineSizeSelector === "Bold") {
+        lineSize = 40;
     }
 
-
-    function undo() {
-        if (clickedshape === "text") {
-            typing = false;
-            textbox.remove();
-        }
-        if (drawnShapes.length === 0) {
-            console.log("There are no shapes to undo");
-        } else {
-            undoneShapes.push(drawnShapes.pop());
-            redraw();
-        }
+    if (lineSizeSelector == "Thin") {
+        lineSize = 1;
+    } else if (lineSizeSelector == "Medium") {
+        lineSize = 10;
+    } else if (lineSizeSelector == "Bold") {
+        lineSize = 40;
     }
+    //console.log(lineSize);
+    return lineSize;
+}
 
-    function redo() {
-        if (undoneShapes.length === 0) {
-            console.log("There are no shapes to redo");
-        } else {
-            drawnShapes.push(undoneShapes.pop());
-            redraw()
-        };
-    }
+var drawing = {
+    title: document.getElementById("sTitle"),
+    content: drawnShapes
+};
 
+var url = "http://localhost:3000/api/drawings";
 
+$("#save").click(function() {
 
-    function lineWidthSelector() {
-        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+    console.log(drawing);
 
-
-        ctx.lineJoin = ctx.lineCap = "round";
-        if (lineSizeSelector === "Thin") {
-            lineSize = 1;
-        } else if (lineSizeSelector === "Medium") {
-            lineSize = 10;
-        } else if (lineSizeSelector === "Bold") {
-            lineSize = 40;
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: url,
+        data: JSON.stringify(drawing),
+        success: function(data) {
+            //ctx.clearRect(0, 0, canvas.width, canvas.height);
+            console.log(data);
+            console.log('things are happening');
+            // The drawing was successfully saved
+        },
+        error: function(xhr, err) {
+            console.log('Error occurred in the operation');
+            // The drawing could NOT be saved
         }
+    });
 
-        if (lineSizeSelector == "Thin") {
-            lineSize = 1;
-        } else if (lineSizeSelector == "Medium") {
-            lineSize = 10;
-        } else if (lineSizeSelector == "Bold") {
-            lineSize = 40;
+});
+
+/*$("#load").click(function() {
+    $.ajax({
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        url: url,
+        data: JSON.stringify(drawing),
+        success: function(data) {
+            console.log(data);
+            // The drawing was successfully saved
+        },
+        error: function(xhr, err) {
+            console.log('Error occurred in the operation ');
+            // The drawing could NOT be saved
         }
-        //console.log(lineSize);
-        return lineSize;
-    }
-
-    /* var url = "http://localhost:3000/api/drawings";
-     $.ajax({
-         type: "POST",
-         contentType: "application/json; charset=utf-8",
-         url: url,
-         data: JSON.stringify(drawing),
-         success: function(data) {
-             console.log(data);
-             // The drawing was successfully saved
-         },
-         error: function(xhr, err) {
-             console.log('Error occurred in the operation');
-             // The drawing could NOT be saved
-         }
-     });*/
-
+    });
+});*/
 
 });
 
