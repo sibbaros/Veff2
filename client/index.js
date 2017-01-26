@@ -1,12 +1,7 @@
 var drawnShapes = [];
 var undoneShapes = [];
-var penDrawings = [];
 var currShape = undefined;
 
-var prevX;
-var currX;
-var prevY;
-var currY;
 var isDrawing = false;
 var clickedshape = undefined;
 var clickedEvent = undefined;
@@ -31,6 +26,7 @@ $(document).ready(function() {
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
     var offsetY = BB.top;
+    clickedshape = "pen";
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
@@ -43,7 +39,6 @@ $(document).ready(function() {
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWid = lineWidthSelector();
         this.isDragging = false;
-        //console.log("constructor: " + lineWidthSelector());
     }
 
     Rectangle.prototype.draw = function() {
@@ -94,7 +89,13 @@ $(document).ready(function() {
         this.y = y;
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
-        this.color = "#" + document.getElementById("colorPicker").value;
+        if(clickedshape === "eraser"){
+            this.color = "white";
+        }
+        else{
+             this.color = "#" + document.getElementById("colorPicker").value;
+
+        }
     }
 
     Pen.prototype.addPoint = function(x, y) {
@@ -121,24 +122,6 @@ $(document).ready(function() {
         return this;
     }
 
-    //var pen = {
-
-    //        points: penDrawings
-
-    //  }
-
-    /*pen.draw = function() {
-        console.log("hallo");
-
-        for (var i = 0; i < penDrawings.length; i++) {
-            ctx.moveTo(pen.points[i].x1, pen.points[i].y1);
-            ctx.lineTo(pen.points[i].x2, pen.points[i].y2);
-            ctx.strokeStyle = pen.points[i].color;
-            ctx.lineWidth = pen.points[i].lineWidth;
-            ctx.stroke();
-            ctx.closePath();
-        }
-    }*/
 
     function Text(x, y, str, fonttype, size, color) {
         this.x = x;
@@ -207,6 +190,7 @@ $(document).ready(function() {
             case "text":
             case "pen":
             case "select":
+            case "eraser":
         }
     });
 
@@ -231,15 +215,9 @@ $(document).ready(function() {
         e.stopPropagation();
         var x = e.clientX - offsetX; //e.pageX - this.offsetLeft;
         var y = e.clientY - offsetY; //e.pageY - this.offsetTop;
-        prevX = currX;
-        prevY = currY;
+       
 
-        //currX = e.clientX - this.offsetLeft;
-        //currY = e.clientY - this.offsetTop;
-        currX = e.pageX - this.offsetLeft;
-        currY = e.pageY - this.offsetTop;
-        //startX = x;
-        //startY = y;
+    
         isDrawing = true;
 
 
@@ -263,7 +241,7 @@ $(document).ready(function() {
                 isDrawing = true;
                 break;
             case "line":
-                currShape = new Line(x, y); //startX, startY);
+                currShape = new Line(x, y); 
                 isDrawing = true;
                 break;
             case "text":
@@ -273,14 +251,13 @@ $(document).ready(function() {
                 isDrawing = false;
                 break;
             case "pen":
-                currShape = new Pen(x, y); //prevX, prevY, currX, currY);
+                currShape = new Pen(x, y); 
                 isDrawing = true;
-                //penDrawings.push(currShape);
+                break;
+            case "eraser":
+                currShape = new Pen(x, y);
                 break;
         }
-        //if (clickedEvent == "select") {
-        //  drag();
-        //}
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -336,7 +313,7 @@ $(document).ready(function() {
                 currShape.x2 = x2;
                 currShape.y2 = y2;
                 
-            } else if (clickedshape === "pen") {
+            } else if (clickedshape === "pen" || clickedshape === "eraser") {
                 currShape.addPoint(x, y);
               
             } 
