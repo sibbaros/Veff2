@@ -257,6 +257,8 @@ $(document).ready(function() {
             case "eraser":
                 currShape = new Pen(x, y);
                 break;
+            //currShape.draw();
+            //redraw();
         }
     });
 
@@ -426,15 +428,16 @@ $(document).ready(function() {
         console.log(lineSize);
         return lineSize;
     }
+
+    var drawing = {
+        title: document.getElementById("title"),
+        content: drawnShapes
+     };
+
+    var url = "http://localhost:3000/api/drawings";
+        //console.log(drawing.content);
     $("#save").click(function() {
 
-        var drawing = {
-            title: document.getElementById("title"),
-            content: drawnShapes
-        };
-
-        var url = "http://localhost:3000/api/drawings";
-        console.log(drawing.content);
 
         $.ajax({
             type: "POST",
@@ -443,7 +446,7 @@ $(document).ready(function() {
             data: JSON.stringify(drawing),
             success: function(data) {
                 console.log(data);
-                console.log('things are happening?');
+                console.log()
                 // The drawing was successfully saved
             },
             error: function(xhr, err) {
@@ -454,7 +457,31 @@ $(document).ready(function() {
 
     });
 
-    /*$.ajax({
+
+    /* $("#load").click(function() {
+
+       
+
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: url,
+            data: JSON.stringify(drawing),
+            success: function(data) {
+                for (var i = 0; i < data.content.length; i++) {
+                    data.content[i].draw();
+                }
+                // The drawing was successfully saved
+            },
+            error: function(xhr, err) {
+                console.log('Error occurred in the operation ');
+                // The drawing could NOT be saved
+            }
+        });
+
+    });*
+
+    $.ajax({
         type: "GET",
         contentType: "application/json; charset=utf-8",
         url: url,
