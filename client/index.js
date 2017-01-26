@@ -267,7 +267,6 @@ $(document).ready(function() {
                         // if yes, set that rects isDragging=true
                         dragok = true;
                         s.isDragging = true;
-                        //ctx.setLineDash([6]);
                     }
                 }
                 mouseStartX = mx;
@@ -340,6 +339,7 @@ $(document).ready(function() {
             for (var i = 0; i < drawnShapes.length; i++) {
                 var s = drawnShapes[i];
                 if (s.isDragging) {
+                    ctx.setLineDash([6]);
                     s.x += dx;
                     s.y += dy;
                 }
@@ -401,7 +401,7 @@ $(document).ready(function() {
         e.preventDefault();
         e.stopPropagation();
 
-        //ctx.setLineDash([]);
+        ctx.setLineDash([]);
 
         dragok = false;
         for (var i = 0; i < drawnShapes.length; i++) {
@@ -419,7 +419,7 @@ $(document).ready(function() {
         }
 
         isDrawing = false;
-        //redraw();
+        redraw();
     })
 
     function redraw() {
