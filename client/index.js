@@ -452,19 +452,21 @@ $(document).ready(function() {
     $("#save").click(function() {
 
         var drawing = {
-            title: getElementById("title"),
+            title: document.getElementById("title"),
             content: drawnShapes
         };
 
         var url = "http://localhost:3000/api/drawings";
-
+        console.log(drawing);
         $.ajax({
             type: "POST",
             contentType: "application/json; charset=utf-8",
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
-                console.log(data);
+
+                console.log(data.title);
+                console.log('things are happening');
                 // The drawing was successfully saved
             },
             error: function(xhr, err) {
@@ -475,7 +477,7 @@ $(document).ready(function() {
 
     });
 
-    $.ajax({
+    /*$.ajax({
         type: "GET",
         contentType: "application/json; charset=utf-8",
         url: url,
@@ -488,7 +490,7 @@ $(document).ready(function() {
             console.log('Error occurred in the operation ');
             // The drawing could NOT be saved
         }
-    });
+    });*/
 });
 
 
