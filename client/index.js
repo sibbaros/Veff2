@@ -89,40 +89,53 @@ $(document).ready(function() {
         ctx.stroke();
     }
 
-    function Pen(x1, y1, x2, y2) {
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
+    function Pen(x, y) {
+        this.x = x;
+        this.y = y;
+        this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
     }
 
+    Pen.prototype.addPoint = function(x, y) {
+        this.penPoints.push(new Point(x, y));
+    }
+
     Pen.prototype.draw = function() {
         ctx.beginPath();
-        ctx.moveTo(this.x1, this.y1);
-        ctx.lineTo(this.x2, this.y2);
+        ctx.lineJoin = ctx.lineCap = 'round';
+        ctx.moveTo(this.x, this.y);
+        for (var i = 0; i < this.penPoints.length; i++) {
+            ctx.lineTo(this.penPoints[i].x, this.penPoints[i].y);
+        }
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
-        penDrawings.push({
+        /*penDrawings.push({
             type: pen,
             x1: this.x1,
             x2: this.x2,
             y1: this.y1,
             y2: this.y2
         });
-        console.log(penDrawings);
+        console.log(penDrawings);*/
     }
 
-    var pen = {
-
-        points: penDrawings
-
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
     }
 
-    pen.draw = function() {
+    //var pen = {
+
+    //        points: penDrawings
+
+    //  }
+
+    /*pen.draw = function() {
+        console.log("hallo");
 
         for (var i = 0; i < penDrawings.length; i++) {
             ctx.moveTo(pen.points[i].x1, pen.points[i].y1);
@@ -132,7 +145,7 @@ $(document).ready(function() {
             ctx.stroke();
             ctx.closePath();
         }
-    }
+    }*/
 
     function Text(x, y, str, fonttype, size, color) {
         this.x = x;
@@ -200,12 +213,12 @@ $(document).ready(function() {
             case "line":
             case "text":
             case "pen":
+            case "select":
         }
     });
 
     $(".Event").click(function() {
         clickedEvent = $(this).attr('id');
-
         $(".Event").removeClass("active");
         $(this).addClass("active");
 
@@ -216,13 +229,15 @@ $(document).ready(function() {
             case "redo":
                 redo();
                 break;
-            case "select":
+                //case "select":
         }
     })
 
     $("#myCanvas").mousedown(function(e) {
-        var x = e.pageX - this.offsetLeft;
-        var y = e.pageY - this.offsetTop;
+        e.preventDefault();
+        e.stopPropagation();
+        var x = e.clientX - offsetX; //e.pageX - this.offsetLeft;
+        var y = e.clientY - offsetY; //e.pageY - this.offsetTop;
         prevX = currX;
         prevY = currY;
 
@@ -234,8 +249,7 @@ $(document).ready(function() {
         //startY = y;
         isDrawing = true;
 
-        e.preventDefault();
-        e.stopPropagation();
+
         var mx = parseInt(e.clientX - offsetX);
         var my = parseInt(e.clientY - offsetY);
 
@@ -253,8 +267,11 @@ $(document).ready(function() {
                         // if yes, set that rects isDragging=true
                         dragok = true;
                         s.isDragging = true;
+                        //ctx.setLineDash([6]);
                     }
                 }
+                mouseStartX = mx;
+                mouseStartY = my;
             }
         }
         //for (var i = 0; i < drawnShapes.length; i++) {
@@ -265,29 +282,34 @@ $(document).ready(function() {
         //}
 
         //}
-        mouseStartX = mx;
-        mouseStartY = my;
+        //mouseStartX = mx;
+        //mouseStartY = my;
 
-        isDrawing = true;
+        //isDrawing = true;
 
         switch (clickedshape) {
             case "rect":
                 currShape = new Rectangle(x, y);
+                isDrawing = true;
                 break;
             case "circle":
                 currShape = new Circle(x, y);
+                isDrawing = true;
                 break;
             case "line":
                 currShape = new Line(x, y); //startX, startY);
+                isDrawing = true;
                 break;
             case "text":
                 showTextbox(e.clientX, e.clientY);
                 currShape = new Text(x, y);
                 typing = true;
+                isDrawing = false;
                 break;
             case "pen":
-                currShape = new Pen(prevX, prevY, currX, currY);
-                penDrawings.push(currShape);
+                currShape = new Pen(x, y); //prevX, prevY, currX, currY);
+                isDrawing = true;
+                //penDrawings.push(currShape);
                 break;
         }
         //if (clickedEvent == "select") {
@@ -296,6 +318,9 @@ $(document).ready(function() {
     });
 
     $("#myCanvas").mousemove(function(e) {
+
+        var x = e.clientX - offsetX;
+        var y = e.clientY - offsetY;
 
         if (dragok) {
             e.preventDefault();
@@ -318,8 +343,9 @@ $(document).ready(function() {
                     s.x += dx;
                     s.y += dy;
                 }
+                redraw();
             }
-            redraw();
+            //redraw();
             mouseStartX = mx;
             mouseStartY = my;
 
@@ -327,73 +353,77 @@ $(document).ready(function() {
 
         if (isDrawing === true) {
             if (clickedshape === "rect") {
-                var w = e.clientX - offsetX - currShape.x; //e.pageX - startX; //currShape.x; //startX;
-                var h = e.clientY - offsetY - currShape.y; //e.pageY - startY; //currShape.y; //startY;
+                var w = x - currShape.x; //e.pageX - startX; //currShape.x; //startX;
+                var h = y - currShape.y; //e.pageY - startY; //currShape.y; //startY;
                 currShape.width = w;
                 currShape.height = h;
-                redraw();
-                currShape.draw();
+                //redraw();
+                //currShape.draw();
             } else if (clickedshape === "circle") {
-                var dia = e.clientX - offsetX - currShape.x; //e.pageX - startX;
+                var dia = x - currShape.x; //e.pageX - startX;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
+                //redraw();
+                //currShape.draw();
             } else if (clickedshape === "line") {
-                var x2 = e.clientX - offsetX; //e.pageX - this.offsetLeft;
-                var y2 = e.clientY - offsetY; //e.pageY - this.offsetTop;
+                var x2 = x; //e.pageX - this.offsetLeft;
+                var y2 = y; //e.pageY - this.offsetTop;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-                redraw();
-                currShape.draw();
-            } else if (clickedshape === "pen") {
-                prevX = currX;
-                prevY = currY;
-                currX = e.pageX - this.offsetLeft;
-                currY = e.pageY - this.offsetTop;
-                currShape.x1 = prevX;
-                currShape.y1 = prevY;
-                currShape.x2 = currX;
-                currShape.y2 = currY;
                 //redraw();
-                currShape.draw();
-            } else if (clickedshape === "text") {
-                typing = false;
-                isDrawing = false;
-            }
+                //currShape.draw();
+            } else if (clickedshape === "pen") {
+                currShape.addPoint(x, y);
+                //prevX = currX;
+                //prevY = currY;
+                //currX = e.pageX - this.offsetLeft;
+                //currY = e.pageY - this.offsetTop;
+                //currShape.x1 = prevX;
+                //currShape.y1 = prevY;
+                //currShape.x2 = currX;
+                //currShape.y2 = currY;
+                //redraw();
+                //currShape.draw();
+            } //else if (clickedshape === "text") {
+            //typing = false;
+            //isDrawing = false;
+            //}
 
 
-            //redraw();
-            //currShape.draw();
+            redraw();
+            currShape.draw();
         }
-
 
     });
 
     $("#myCanvas").mouseup(function(e) {
         e.preventDefault();
         e.stopPropagation();
+
+        //ctx.setLineDash([]);
+
         dragok = false;
-
-        isDrawing = false;
-        if (currShape !== undefined) {
-            drawnShapes.push(currShape);
-        } else if (clickedshape === "pen") {
-            console.log("drawings", penDrawings);
-
-            drawnShapes.push(pen);
-        }
-
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
         }
 
-        redraw();
+        if (isDrawing) {
+            if (currShape !== undefined) {
+                drawnShapes.push(currShape);
+            }
+            /*else if (clickedshape === "pen") {
+                           console.log("drawings", penDrawings);
+                           drawnShapes.push(pen);
+                       }*/
+        }
+
+        isDrawing = false;
+        //redraw();
     })
 
     function redraw() {
-        if (clickedshape !== "pen") {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].draw();
         }
