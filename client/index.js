@@ -112,7 +112,7 @@ $(document).ready(function() {
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
-     
+
     }
 
     function Point(x, y) {
@@ -249,9 +249,9 @@ $(document).ready(function() {
         dragok = false;
 
         if (clickedshape === "select") {
-           select(mx, my);
+            select(mx, my);
         }
-      
+
 
         switch (clickedshape) {
             case "rect":
@@ -323,23 +323,23 @@ $(document).ready(function() {
                 var h = y - currShape.y; //e.pageY - startY; //currShape.y; //startY;
                 currShape.width = w;
                 currShape.height = h;
-               
+
             } else if (clickedshape === "circle") {
-                var dia = x - currShape.x; 
+                var dia = x - currShape.x;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
-                
+
             } else if (clickedshape === "line") {
-                var x2 = x; 
-                var y2 = y; 
+                var x2 = x;
+                var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-                
+
             } else if (clickedshape === "pen") {
                 currShape.addPoint(x, y);
-              
-            } 
+
+            }
 
 
             redraw();
@@ -352,11 +352,11 @@ $(document).ready(function() {
         e.preventDefault();
         e.stopPropagation();
 
-  
+
         dragok = false;
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
-        
+
         }
 
         if (isDrawing) {
@@ -381,25 +381,25 @@ $(document).ready(function() {
 
     }
 
-    function select( mx, my) {
+    function select(mx, my) {
 
-         isDrawing = false;
+        isDrawing = false;
 
-            for (var i = 0; i < drawnShapes.length; i++) {
-                var s = drawnShapes[i];
-                // decide if the shape is a rect or circle               
-                if (s.width) {
-                    // test if the mouse is inside this rect
-                    if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
-                        // if yes, set that rects isDragging=true
-                        dragok = true;
-                        s.isDragging = true;
-                        //ctx.setLineDash([6]);
-                    }
+        for (var i = 0; i < drawnShapes.length; i++) {
+            var s = drawnShapes[i];
+            // decide if the shape is a rect or circle               
+            if (s.width) {
+                // test if the mouse is inside this rect
+                if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
+                    // if yes, set that rects isDragging=true
+                    dragok = true;
+                    s.isDragging = true;
+                    //ctx.setLineDash([6]);
                 }
-                mouseStartX = mx;
-                mouseStartY = my;
             }
+            mouseStartX = mx;
+            mouseStartY = my;
+        }
     }
 
     function undo() {
@@ -424,22 +424,20 @@ $(document).ready(function() {
         };
     }
 
-  
+
 
     function lineWidthSelector() {
         var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
 
 
-            ctx.lineJoin = ctx.lineCap = "round";
-            if(lineSizeSelector === "Thin"){
-                lineSize = 1;
-            }
-            else if(lineSizeSelector === "Medium"){
-                lineSize = 10;
-            }
-            else if(lineSizeSelector === "Bold"){
-                lineSize = 40;
-            }
+        ctx.lineJoin = ctx.lineCap = "round";
+        if (lineSizeSelector === "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector === "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector === "Bold") {
+            lineSize = 40;
+        }
 
         if (lineSizeSelector == "Thin") {
             lineSize = 1;
@@ -454,8 +452,8 @@ $(document).ready(function() {
     $("#save").click(function() {
 
         var drawing = {
-            title: "Nú er gaman",
-            content: "the contents of the shapes array"
+            title: getElementById("title"),
+            content: drawnShapes
         };
 
         var url = "http://localhost:3000/api/drawings";
@@ -475,6 +473,21 @@ $(document).ready(function() {
             }
         });
 
+    });
+
+    $.ajax({
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        url: url,
+        data: JSON.stringify(drawing),
+        success: function(data) {
+            console.log(data);
+            // The drawing was successfully saved
+        },
+        error: function(xhr, err) {
+            console.log('Error occurred in the operation ');
+            // The drawing could NOT be saved
+        }
     });
 });
 
