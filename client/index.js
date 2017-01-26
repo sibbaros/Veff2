@@ -36,6 +36,7 @@ $(document).ready(function() {
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
 
     function Rectangle(x, y, width, height) {
+        this.shape = 'rect';
         this.x = x;
         this.y = y;
         this.width = width;
@@ -53,6 +54,7 @@ $(document).ready(function() {
     }
 
     function Circle(x, y, radius, sAngle, eAngle) {
+        this.shape = 'circle';
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -60,7 +62,6 @@ $(document).ready(function() {
         this.eAngle = eAngle;
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWidth = lineWidthSelector();
-
     }
 
     Circle.prototype.draw = function() {
@@ -72,6 +73,7 @@ $(document).ready(function() {
     }
 
     function Line(x1, y1, x2, y2) {
+        this.shape = 'line';
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
@@ -90,6 +92,7 @@ $(document).ready(function() {
     }
 
     function Pen(x, y) {
+        this.shape = 'pen';
         this.x = x;
         this.y = y;
         this.penPoints = new Array(new Point(x, y));
@@ -112,14 +115,7 @@ $(document).ready(function() {
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
         ctx.closePath();
-        /*penDrawings.push({
-            type: pen,
-            x1: this.x1,
-            x2: this.x2,
-            y1: this.y1,
-            y2: this.y2
-        });
-        console.log(penDrawings);*/
+
     }
 
     function Point(x, y) {
@@ -128,26 +124,8 @@ $(document).ready(function() {
         return this;
     }
 
-    //var pen = {
-
-    //        points: penDrawings
-
-    //  }
-
-    /*pen.draw = function() {
-        console.log("hallo");
-
-        for (var i = 0; i < penDrawings.length; i++) {
-            ctx.moveTo(pen.points[i].x1, pen.points[i].y1);
-            ctx.lineTo(pen.points[i].x2, pen.points[i].y2);
-            ctx.strokeStyle = pen.points[i].color;
-            ctx.lineWidth = pen.points[i].lineWidth;
-            ctx.stroke();
-            ctx.closePath();
-        }
-    }*/
-
     function Text(x, y, str, fonttype, size, color) {
+        this.shape = 'text';
         this.x = x;
         this.y = y;
         this.size = parseInt($('#selectFontSize').find(':selected').text());
@@ -229,62 +207,27 @@ $(document).ready(function() {
             case "redo":
                 redo();
                 break;
-                //case "select":
         }
     })
 
     $("#myCanvas").mousedown(function(e) {
         e.preventDefault();
         e.stopPropagation();
-        var x = e.clientX - offsetX; //e.pageX - this.offsetLeft;
-        var y = e.clientY - offsetY; //e.pageY - this.offsetTop;
-        prevX = currX;
-        prevY = currY;
+        var x = e.clientX - offsetX;
+        var y = e.clientY - offsetY;
 
-        //currX = e.clientX - this.offsetLeft;
-        //currY = e.clientY - this.offsetTop;
-        currX = e.pageX - this.offsetLeft;
-        currY = e.pageY - this.offsetTop;
-        //startX = x;
-        //startY = y;
         isDrawing = true;
 
 
-        var mx = parseInt(e.clientX - offsetX);
-        var my = parseInt(e.clientY - offsetY);
+        var mx = e.clientX - offsetX; //parseInt(e.clientX - offsetX);
+        var my = e.clientY - offsetY;
 
         dragok = false;
 
         if (clickedshape === "select") {
-            isDrawing = false;
-
-            for (var i = 0; i < drawnShapes.length; i++) {
-                var s = drawnShapes[i];
-                // decide if the shape is a rect or circle               
-                if (s.width) {
-                    // test if the mouse is inside this rect
-                    if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
-                        // if yes, set that rects isDragging=true
-                        dragok = true;
-                        s.isDragging = true;
-                    }
-                }
-                mouseStartX = mx;
-                mouseStartY = my;
-            }
+            select(mx, my);
         }
-        //for (var i = 0; i < drawnShapes.length; i++) {
-        //  var s = drawnShapes[i];
-        //if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
-        //  dragok = true;
-        // s.isDragging = true;
-        //}
 
-        //}
-        //mouseStartX = mx;
-        //mouseStartY = my;
-
-        //isDrawing = true;
 
         switch (clickedshape) {
             case "rect":
@@ -296,7 +239,7 @@ $(document).ready(function() {
                 isDrawing = true;
                 break;
             case "line":
-                currShape = new Line(x, y); //startX, startY);
+                currShape = new Line(x, y);
                 isDrawing = true;
                 break;
             case "text":
@@ -306,14 +249,11 @@ $(document).ready(function() {
                 isDrawing = false;
                 break;
             case "pen":
-                currShape = new Pen(x, y); //prevX, prevY, currX, currY);
+                currShape = new Pen(x, y);
                 isDrawing = true;
-                //penDrawings.push(currShape);
                 break;
         }
-        //if (clickedEvent == "select") {
-        //  drag();
-        //}
+
     });
 
     $("#myCanvas").mousemove(function(e) {
@@ -340,12 +280,25 @@ $(document).ready(function() {
                 var s = drawnShapes[i];
                 if (s.isDragging) {
                     ctx.setLineDash([6]);
-                    s.x += dx;
-                    s.y += dy;
+                    if (s.shape === 'line') {
+                        s.x1 += dx;
+                        s.x2 += dx;
+                        s.y1 += dy;
+                        s.y2 += dy;
+                    } else if (s.shape === 'pen') {
+                        s.x += dx;
+                        s.y += dy;
+                        for (var i = 0; i < s.penPoints.length; i++) {
+                            s.penPoints[i].x += dx;
+                            s.penPoints[i].y += dy;
+                        }
+                    } else {
+                        s.x += dx;
+                        s.y += dy;
+                    }
                 }
                 redraw();
             }
-            //redraw();
             mouseStartX = mx;
             mouseStartY = my;
 
@@ -353,42 +306,27 @@ $(document).ready(function() {
 
         if (isDrawing === true) {
             if (clickedshape === "rect") {
-                var w = x - currShape.x; //e.pageX - startX; //currShape.x; //startX;
-                var h = y - currShape.y; //e.pageY - startY; //currShape.y; //startY;
+                var w = x - currShape.x;
+                var h = y - currShape.y;
                 currShape.width = w;
                 currShape.height = h;
-                //redraw();
-                //currShape.draw();
+
             } else if (clickedshape === "circle") {
-                var dia = x - currShape.x; //e.pageX - startX;
+                var dia = x - currShape.x;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
-                //redraw();
-                //currShape.draw();
+
             } else if (clickedshape === "line") {
-                var x2 = x; //e.pageX - this.offsetLeft;
-                var y2 = y; //e.pageY - this.offsetTop;
+                var x2 = x;
+                var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-                //redraw();
-                //currShape.draw();
+
             } else if (clickedshape === "pen") {
                 currShape.addPoint(x, y);
-                //prevX = currX;
-                //prevY = currY;
-                //currX = e.pageX - this.offsetLeft;
-                //currY = e.pageY - this.offsetTop;
-                //currShape.x1 = prevX;
-                //currShape.y1 = prevY;
-                //currShape.x2 = currX;
-                //currShape.y2 = currY;
-                //redraw();
-                //currShape.draw();
-            } //else if (clickedshape === "text") {
-            //typing = false;
-            //isDrawing = false;
-            //}
+
+            }
 
 
             redraw();
@@ -402,25 +340,21 @@ $(document).ready(function() {
         e.stopPropagation();
 
         ctx.setLineDash([]);
-
         dragok = false;
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
+
         }
 
         if (isDrawing) {
             if (currShape !== undefined) {
                 drawnShapes.push(currShape);
             }
-            /*else if (clickedshape === "pen") {
-                           console.log("drawings", penDrawings);
-                           drawnShapes.push(pen);
-                       }*/
         }
 
         isDrawing = false;
         redraw();
-    })
+    });
 
     function redraw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -429,6 +363,59 @@ $(document).ready(function() {
         }
 
     }
+
+
+    function select(mx, my) {
+        isDrawing = false;
+
+        for (var i = 0; i < drawnShapes.length; i++) {
+            var s = drawnShapes[i];
+            // decide if the shape is a rect or circle               
+            if (s.shape === 'rect') {
+                // test if the mouse is inside this rect
+                if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
+                    //console.log(mx);
+                    //console.log(s.x);
+                    //console.log(s.width);
+                    //console.log(s.x + s.width);
+                    // if yes, set that rects isDragging=true
+                    dragok = true;
+                    s.isDragging = true;
+                    //ctx.setLineDash([6]);
+                }
+
+            } else if (s.shape === 'circle') {
+                if (Math.pow(mx - s.x, 2) + Math.pow(my - s.y, 2) < Math.pow(s.radius, 2)) {
+                    dragok = true;
+                    s.isDragging = true;
+                }
+
+            } else if (s.shape === 'line') {
+                var epsilon = 5;
+                var m = (s.y2 - s.y1) / (s.x2 - s.x1);
+                var b = s.y1 - m * s.x1;
+                if (Math.abs(my - (m * mx + b)) < epsilon) {
+                    dragok = true;
+                    s.isDragging = true;
+                }
+
+            } else if (s.shape === 'pen') {
+                for (var i = 0; i < s.penPoints.length; i++) {
+                    if (Math.abs(mx - s.penPoints[i].x) < 0.005 || Math.abs(my - s.penPoints[i].y) < 0.005) {
+                        dragok = true;
+                        s.isDragging = true;
+                        break;
+                    }
+                }
+
+            } else if (s.shape === 'text') {
+
+            }
+            mouseStartX = mx;
+            mouseStartY = my;
+        }
+    }
+
 
     function undo() {
         if (clickedshape === "text") {
@@ -452,18 +439,20 @@ $(document).ready(function() {
         };
     }
 
-    function drag() {
-        for (var i = drawnShapes.length - 1; i >= 0; i--) {
-            if (drawnShapes[i].x === this.x && drawnShapes[i].y === this.y) {
-                drawnShapes[i].x === 0 & drawnShapes[i].y === 0;
-                console.log("hi");
-            }
-        }
 
-    }
 
     function lineWidthSelector() {
         var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+
+        ctx.lineJoin = ctx.lineCap = "round";
+        if (lineSizeSelector === "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector === "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector === "Bold") {
+            lineSize = 40;
+        }
 
         if (lineSizeSelector == "Thin") {
             lineSize = 1;
@@ -472,7 +461,7 @@ $(document).ready(function() {
         } else if (lineSizeSelector == "Bold") {
             lineSize = 40;
         }
-        console.log(lineSize);
+        //console.log(lineSize);
         return lineSize;
     }
 
