@@ -26,7 +26,6 @@ $(document).ready(function() {
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
     var offsetY = BB.top;
-    clickedshape = "pen";
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
@@ -57,6 +56,7 @@ $(document).ready(function() {
         this.eAngle = eAngle;
         this.color = "#" + document.getElementById("colorPicker").value;
         this.lineWidth = lineWidthSelector();
+        this.isDragging = false;
     }
 
     Circle.prototype.draw = function() {
@@ -75,6 +75,7 @@ $(document).ready(function() {
         this.y2 = y2;
         this.lineWidth = lineWidthSelector();
         this.color = "#" + document.getElementById("colorPicker").value;
+        this.isDragging = false;
     }
 
     Line.prototype.draw = function() {
@@ -90,8 +91,13 @@ $(document).ready(function() {
         this.shape = 'pen';
         this.x = x;
         this.y = y;
+        this.maxX = x;
+        this.maxY = y;
+        this.minX = x;
+        this.minY = y;
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
+        this.isDragging = false;
         if (clickedshape === "eraser") {
             this.color = "white";
         } else {
@@ -102,6 +108,7 @@ $(document).ready(function() {
 
     Pen.prototype.addPoint = function(x, y) {
         this.penPoints.push(new Point(x, y));
+        this.getMinMaxPoints();
     }
 
     Pen.prototype.draw = function() {
@@ -118,6 +125,23 @@ $(document).ready(function() {
 
     }
 
+    Pen.prototype.getMinMaxPoints = function() {
+        for (var i = 0; i < this.penPoints.length; i++) {
+            if (this.penPoints[i].x > this.maxX) {
+                this.maxX = this.penPoints[i].x;
+            }
+            if (this.penPoints[i].y > this.maxY) {
+                this.maxY = this.penPoints[i].y;
+            }
+            if (this.penPoints[i].x < this.minX) {
+                this.minX = this.penPoints[i].x;
+            }
+            if (this.penPoints[i].y < this.minY) {
+                this.minY = this.penPoints[i].y;
+            }
+        }
+    }
+
     function Point(x, y) {
         this.x = x;
         this.y = y;
@@ -132,12 +156,13 @@ $(document).ready(function() {
         this.size = parseInt($('#selectFontSize').find(':selected').text());
         this.fonttype = $('#selectFontFamily').find(':selected').text();
         this.color = "#" + document.getElementById("colorPicker").value;
+        this.isDragging = false;
     }
 
     Text.prototype.draw = function() {
         ctx.font = this.size + "px " + this.fonttype;
         ctx.fillStyle = this.color;
-        ctx.fillText(this.str, this.x, this.y);
+        ctx.fillText(this.str, this.x + Number(this.size), this.y + Number(this.size));
     }
 
     function showTextbox(x, y) {
@@ -145,7 +170,7 @@ $(document).ready(function() {
             textbox.remove();
         }
 
-        textbox = $("<textarea id='text'/>"); //$("<input type='text' id='text'/>");
+        textbox = $("<textarea id='textarea'/>");
         var size = $('#selectFontSize').find(':selected').text();
         var font = $('#selectFontFamily').find(':selected').text();
         var color = "#" + document.getElementById("colorPicker").value;
@@ -169,7 +194,6 @@ $(document).ready(function() {
                 currShape.draw();
                 typing = false;
                 textbox.remove();
-                //currShape.str = $('input:text').val();
             }
         }
     }
@@ -246,7 +270,7 @@ $(document).ready(function() {
                 break;
             case "text":
                 showTextbox(e.clientX, e.clientY);
-                currShape = new Text(x, y);
+                currShape = new Text(x, y); //x, y);
                 typing = true;
                 isDrawing = false;
                 break;
@@ -298,6 +322,10 @@ $(document).ready(function() {
                             s.penPoints[i].x += dx;
                             s.penPoints[i].y += dy;
                         }
+                        s.maxX += dx;
+                        s.maxY += dy;
+                        s.minX += dx;
+                        s.minY += dy;
                     } else {
                         s.x += dx;
                         s.y += dy;
@@ -329,7 +357,6 @@ $(document).ready(function() {
                 currShape.x2 = x2;
                 currShape.y2 = y2;
             } else if (clickedshape === "pen" || clickedshape === "eraser") {
-
                 currShape.addPoint(x, y);
             }
 
@@ -348,7 +375,6 @@ $(document).ready(function() {
         dragok = false;
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
-
         }
 
         if (isDrawing) {
@@ -369,7 +395,6 @@ $(document).ready(function() {
 
     }
 
-
     function select(mx, my) {
         isDrawing = false;
 
@@ -379,11 +404,6 @@ $(document).ready(function() {
             if (s.shape === 'rect') {
                 // test if the mouse is inside this rect
                 if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
-                    //console.log(mx);
-                    //console.log(s.x);
-                    //console.log(s.width);
-                    //console.log(s.x + s.width);
-                    // if yes, set that rects isDragging=true
                     dragok = true;
                     s.isDragging = true;
                     //ctx.setLineDash([6]);
@@ -405,17 +425,21 @@ $(document).ready(function() {
                 }
 
             } else if (s.shape === 'pen') {
-                for (var i = 0; i < s.penPoints.length; i++) {
-                    if (Math.abs(mx - s.penPoints[i].x) < 0.005 || Math.abs(my - s.penPoints[i].y) < 0.005) {
-                        dragok = true;
-                        s.isDragging = true;
-                        break;
-                    }
+                //if (Math.abs(mx - s.penPoints[i].x) < 0.005 || Math.abs(my - s.penPoints[i].y) < 0.005) {
+                if (mx < s.maxX && mx > s.minX && my < s.maxY && my > s.minY) {
+                    dragok = true;
+                    s.isDragging = true;
                 }
-
             } else if (s.shape === 'text') {
+                var metrics = ctx.measureText(s.str);
+                var width = metrics.width;
+                var x = s.x + Number(s.size);
+                var y = s.y + Number(s.size);
 
-
+                if (mx >= x && mx <= x + width && my <= y && my >= y - Number(s.size)) {
+                    dragok = true;
+                    s.isDragging = true;
+                }
             }
         }
         mouseStartX = mx;
@@ -424,51 +448,44 @@ $(document).ready(function() {
 
 
 
-function undo() {
-    if (clickedshape === "text") {
-        typing = false;
-        textbox.remove();
+    function undo() {
+        if (clickedshape === "text") {
+            typing = false;
+            textbox.remove();
+        }
+        if (drawnShapes.length === 0) {
+            console.log("There are no shapes to undo");
+        } else {
+            undoneShapes.push(drawnShapes.pop());
+            redraw();
+        }
     }
-    if (drawnShapes.length === 0) {
-        console.log("There are no shapes to undo");
-    } else {
-        undoneShapes.push(drawnShapes.pop());
-        redraw();
-    }
-}
 
-function redo() {
-    if (undoneShapes.length === 0) {
-        console.log("There are no shapes to redo");
-    } else {
-        drawnShapes.push(undoneShapes.pop());
-        redraw()
-    };
-}
-
-
-
-function lineWidthSelector() {
-    var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
-
-
-    ctx.lineJoin = ctx.lineCap = "round";
-    if (lineSizeSelector === "Thin") {
-        lineSize = 1;
-    } else if (lineSizeSelector === "Medium") {
-        lineSize = 10;
-    } else if (lineSizeSelector === "Bold") {
-        lineSize = 40;
+    function redo() {
+        if (undoneShapes.length === 0) {
+            console.log("There are no shapes to redo");
+        } else {
+            drawnShapes.push(undoneShapes.pop());
+            redraw()
+        };
     }
 
 
-    if (lineSizeSelector == "Thin") {
-        lineSize = 1;
-    } else if (lineSizeSelector == "Medium") {
-        lineSize = 10;
-    } else if (lineSizeSelector == "Bold") {
-        lineSize = 40;
-    }
+
+    function lineWidthSelector() {
+        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+
+        ctx.lineJoin = ctx.lineCap = "round";
+        if (lineSizeSelector === "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector === "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector === "Bold") {
+            lineSize = 40;
+        }
+
+
     //console.log(lineSize);
     return lineSize;
 }
@@ -569,15 +586,39 @@ $("#load").click(function() {
 
     /*$("#load").click(function() {
 
+
+
+    var drawing = {
+        title: document.getElementById("sTitle"),
+        content: drawnShapes
+    };
+
+    var url = "http://localhost:3000/api/drawings";
+
+    $("#save").click(function() {
+
+        console.log(drawing);
+
         $.ajax({
-            type: "GET",
+            type: "POST",
             contentType: "application/json; charset=utf-8",
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
-                for (var i = 0; i < data.content.length; i++) {
-                    data.content[i].draw();
-                }
+                //ctx.clearRect(0, 0, canvas.width, canvas.height);
+                console.log(data);
+                console.log('things are happening');
+                // The drawing was successfully saved
+            },
+            error: function(xhr, err) {
+                console.log('Error occurred in the operation');
+                // The drawing could NOT be saved
+            }
+        });
+
+    });
+
+    
                 console.log(data);
                 // The drawing was successfully saved
             },
@@ -586,6 +627,7 @@ $("#load").click(function() {
                 // The drawing could NOT be saved
             }
         });
+
 
     });*
 
@@ -603,6 +645,8 @@ $("#load").click(function() {
             // The drawing could NOT be saved
         }
     });*/
+
+   // });
 
 
 });
