@@ -89,11 +89,10 @@ $(document).ready(function() {
         this.y = y;
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
-        if(clickedshape === "eraser"){
+        if (clickedshape === "eraser") {
             this.color = "white";
-        }
-        else{
-             this.color = "#" + document.getElementById("colorPicker").value;
+        } else {
+            this.color = "#" + document.getElementById("colorPicker").value;
 
         }
     }
@@ -215,9 +214,9 @@ $(document).ready(function() {
         e.stopPropagation();
         var x = e.clientX - offsetX; //e.pageX - this.offsetLeft;
         var y = e.clientY - offsetY; //e.pageY - this.offsetTop;
-       
 
-    
+
+
         isDrawing = true;
 
 
@@ -241,7 +240,7 @@ $(document).ready(function() {
                 isDrawing = true;
                 break;
             case "line":
-                currShape = new Line(x, y); 
+                currShape = new Line(x, y);
                 isDrawing = true;
                 break;
             case "text":
@@ -251,7 +250,7 @@ $(document).ready(function() {
                 isDrawing = false;
                 break;
             case "pen":
-                currShape = new Pen(x, y); 
+                currShape = new Pen(x, y);
                 isDrawing = true;
                 break;
             case "eraser":
@@ -314,7 +313,7 @@ $(document).ready(function() {
                 var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-                
+
             } else if (clickedshape === "pen" || clickedshape === "eraser") {
 
                 currShape.addPoint(x, y);
@@ -430,14 +429,27 @@ $(document).ready(function() {
     }
 
     var drawing = {
-        title: document.getElementById("title"),
+
+        title: document.getElementById("sTitle").value,
         content: drawnShapes
-     };
+    };
 
     var url = "http://localhost:3000/api/drawings";
-        //console.log(drawing.content);
+
+    function loadDoc() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+     document.getElementById("sTitle").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "ajax_info.txt", true);
+  xhttp.send();
+} 
+
     $("#save").click(function() {
 
+        //console.log(drawing);
 
         $.ajax({
             type: "POST",
@@ -445,12 +457,15 @@ $(document).ready(function() {
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
+                //ctx.clearRect(0, 0, canvas.width, canvas.height);
                 console.log(data);
-                console.log()
+
+                console.log('things are happening');
+
                 // The drawing was successfully saved
             },
             error: function(xhr, err) {
-                console.log('Error occurred in the operation ');
+                console.log('Error occurred in the operation');
                 // The drawing could NOT be saved
             }
         });
@@ -458,9 +473,12 @@ $(document).ready(function() {
     });
 
 
-    /* $("#load").click(function() {
+
+
 
        
+
+    /*$("#load").click(function() {
 
         $.ajax({
             type: "GET",
@@ -468,9 +486,13 @@ $(document).ready(function() {
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
+<<<<<<< HEAD
                 for (var i = 0; i < data.content.length; i++) {
                     data.content[i].draw();
                 }
+=======
+                console.log(data);
+>>>>>>> 35154657cf6875295bd4911113b72beb1f704aea
                 // The drawing was successfully saved
             },
             error: function(xhr, err) {
@@ -478,6 +500,7 @@ $(document).ready(function() {
                 // The drawing could NOT be saved
             }
         });
+<<<<<<< HEAD
 
     });*
 
@@ -494,7 +517,10 @@ $(document).ready(function() {
             console.log('Error occurred in the operation ');
             // The drawing could NOT be saved
         }
+=======
+>>>>>>> 35154657cf6875295bd4911113b72beb1f704aea
     });*/
+
 });
 
 
