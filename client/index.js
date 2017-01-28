@@ -19,13 +19,14 @@ var startY;
 
 
 $(document).ready(function() {
-
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
+    resizeCanvas();
 
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
     var offsetY = BB.top;
+    clickedshape = "pen";
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
@@ -281,8 +282,8 @@ $(document).ready(function() {
             case "eraser":
                 currShape = new Pen(x, y);
                 break;
-            //currShape.draw();
-            //redraw();
+                //currShape.draw();
+                //redraw();
         }
     });
 
@@ -486,35 +487,57 @@ $(document).ready(function() {
         }
 
 
-    //console.log(lineSize);
-    return lineSize;
-}
+        //console.log(lineSize);
+        return lineSize;
+    }
+
+    function resizeCanvas() {
+        /*ctx.canvas.width = window.innerWidth;
+        if (ctx.canvas.height < window.innerHeight) {
+            ctx.canvas.height = window.innerHeight;
+        }*/
+        var ratio = canvas.width / canvas.height;
+
+        var width = window.innerWidth - 5;
+        var height = window.innerHeight - 5;
+
+        if (width / height > ratio)
+            width = height * ratio;
+        else
+            height = width / ratio;
+
+        canvas.style.width = width;
+        canvas.style.height = height;
+
+        canvas.style.top = (window.innerHeight - height) / 2;
+        canvas.style.left = (window.innerWidth - width) / 2;
+    }
 
 
     var drawing = {
 
         //Einhverra hluta vegna virðist þetta bara finna data.title þannig ég setti 
         //drawnShapes þangað í bili :/
-        title: drawnShapes,//document.getElementById("sTitle").value,
+        title: drawnShapes, //document.getElementById("sTitle").value,
         content: drawnShapes
     };
 
     var url = "http://localhost:3000/api/drawings";
 
-function loadDoc() {
+    function loadDoc() {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
-        if (this.readyState === 4 && this.status === 200) {
-            //document.getElementById("sTitle").innerHTML = this.responseText;
-        }
-    };
-    xhttp.open("GET", "ajax_info.txt", true);
-    xhttp.send();
-} 
+            if (this.readyState === 4 && this.status === 200) {
+                //document.getElementById("sTitle").innerHTML = this.responseText;
+            }
+        };
+        xhttp.open("GET", "ajax_info.txt", true);
+        xhttp.send();
+    }
 
-//console.log(drawing);
+    //console.log(drawing);
 
-    
+
     $("#save").click(function() {
 
         $.ajax({
@@ -543,46 +566,46 @@ function loadDoc() {
 
 
 
-$("#load").click(function() {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: url,
-        dataType: "json",
-        //data: JSON.stringify(drawing),
-        success: function(data) {
+    $("#load").click(function() {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: url,
+            dataType: "json",
+            //data: JSON.stringify(drawing),
+            success: function(data) {
 
-            //stórt lol á þrefalda forlúppu
-            console.log(data);
-             for (var i = 0; i < data.length; i++) {
+                //stórt lol á þrefalda forlúppu
+                console.log(data);
+                for (var i = 0; i < data.length; i++) {
                     var penni = new Pen;
-                    for (var i = 0; i < data.length; i++){
-                        for (var k = 0; k < data[i].title.length; k++){
+                    for (var i = 0; i < data.length; i++) {
+                        for (var k = 0; k < data[i].title.length; k++) {
                             for (var j = 0; j < data[i].title[k].penPoints.length; j++)
-                             penni.addPoint(data[i].title[k].penPoints[j].x, data[i].title[k].penPoints[j].y);
-                                //console.log(data[0].title[0].penPoints);
+                                penni.addPoint(data[i].title[k].penPoints[j].x, data[i].title[k].penPoints[j].y);
+                            //console.log(data[0].title[0].penPoints);
                         }
                     }
 
-                    penni.draw();//data[i].content.draw();
+                    penni.draw(); //data[i].content.draw();
                     console.log(penni);
                 }
-            // The drawing was successfully saved
-            //console.log(data[0].title[0].penPoints);
-            //console.log("hi");
-        },
-        error: function(xhr, err) {
-            console.log('Error occurred in the operation ');
-            // The drawing could NOT be saved
-        }
+                // The drawing was successfully saved
+                //console.log(data[0].title[0].penPoints);
+                //console.log("hi");
+            },
+            error: function(xhr, err) {
+                console.log('Error occurred in the operation ');
+                // The drawing could NOT be saved
+            }
+        });
     });
-});
 
 
 
 
 
-       
+
 
     /*$("#load").click(function() {
 
@@ -646,7 +669,7 @@ $("#load").click(function() {
         }
     });*/
 
-   // });
+    // });
 
 
 });
