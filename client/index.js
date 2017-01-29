@@ -3,13 +3,13 @@ var undoneShapes = [];
 var currShape = undefined;
 
 var isDrawing = false;
-var clickedshape = undefined;
+var clickedShape = undefined;
 var clickedEvent = undefined;
 var inputbox = undefined;
 var textbox = undefined;
 var typing = false;
 
-var dragok = false;
+var dragOk = false;
 var dragX;
 var dragY;
 var mouseStartX;
@@ -27,7 +27,7 @@ $(document).ready(function() {
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
     var offsetY = BB.top;
-    clickedshape = "pen";
+    clickedShape = "pen";
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
@@ -100,7 +100,7 @@ $(document).ready(function() {
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
         this.isDragging = false;
-        if (clickedshape === "eraser") {
+        if (clickedShape === "eraser") {
             this.color = "white";
         } else {
             this.color = "#" + document.getElementById("colorPicker").value;
@@ -208,11 +208,11 @@ $(document).ready(function() {
     }
 
     $(".Shape").click(function() {
-        clickedshape = $(this).attr('id');
+        clickedShape = $(this).attr('id');
         $(".Shape").removeClass("active");
         $(this).addClass("active");
 
-        switch (clickedshape) {
+        switch (clickedShape) {
             case "rect":
             case "circle":
             case "line":
@@ -235,28 +235,34 @@ $(document).ready(function() {
             case "redo":
                 redo();
                 break;
+            case "clear":
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawnShapes = [];
+                break;
+
+
         }
     })
 
     $("#myCanvas").mousedown(function(e) {
         e.preventDefault();
         e.stopPropagation();
-        var x = e.clientX - offsetX;
-        var y = e.clientY - offsetY;
+        var x = e.screenX - offsetX;
+        var y = e.screenY - offsetY;
 
         isDrawing = true;
 
 
         var mx = e.clientX - offsetX; //parseInt(e.clientX - offsetX);
         var my = e.clientY - offsetY;
-        dragok = false;
+        dragOk = false;
 
-        if (clickedshape === "select") {
+        if (clickedShape === "select") {
             select(mx, my);
         }
 
 
-        switch (clickedshape) {
+        switch (clickedShape) {
             case "rect":
                 currShape = new Rectangle(x, y);
                 isDrawing = true;
@@ -292,7 +298,7 @@ $(document).ready(function() {
         var x = e.clientX - offsetX;
         var y = e.clientY - offsetY;
 
-        if (dragok) {
+        if (dragOk) {
             e.preventDefault();
             e.stopPropagation();
             // get the current mouse position
@@ -340,24 +346,24 @@ $(document).ready(function() {
         }
 
         if (isDrawing === true) {
-            if (clickedshape === "rect") {
+            if (clickedShape === "rect") {
                 var w = x - currShape.x;
                 var h = y - currShape.y;
                 currShape.width = w;
                 currShape.height = h;
 
-            } else if (clickedshape === "circle") {
+            } else if (clickedShape === "circle") {
                 var dia = x - currShape.x;
                 currShape.radius = Math.abs(dia / 2);
                 currShape.sAngle = 0;
                 currShape.eAngle = 2 * Math.PI;
 
-            } else if (clickedshape === "line") {
+            } else if (clickedShape === "line") {
                 var x2 = x;
                 var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-            } else if (clickedshape === "pen" || clickedshape === "eraser") {
+            } else if (clickedShape === "pen" || clickedShape === "eraser") {
                 currShape.addPoint(x, y);
             }
 
@@ -373,7 +379,7 @@ $(document).ready(function() {
         e.stopPropagation();
 
         ctx.setLineDash([]);
-        dragok = false;
+        dragOk = false;
         for (var i = 0; i < drawnShapes.length; i++) {
             drawnShapes[i].isDragging = false;
         }
@@ -405,14 +411,14 @@ $(document).ready(function() {
             if (s.shape === 'rect') {
                 // test if the mouse is inside this rect
                 if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
-                    dragok = true;
+                    dragOk = true;
                     s.isDragging = true;
                     //ctx.setLineDash([6]);
                 }
 
             } else if (s.shape === 'circle') {
                 if (Math.pow(mx - s.x, 2) + Math.pow(my - s.y, 2) < Math.pow(s.radius, 2)) {
-                    dragok = true;
+                    dragOk = true;
                     s.isDragging = true;
                 }
 
@@ -421,14 +427,14 @@ $(document).ready(function() {
                 var m = (s.y2 - s.y1) / (s.x2 - s.x1);
                 var b = s.y1 - m * s.x1;
                 if (Math.abs(my - (m * mx + b)) < epsilon) {
-                    dragok = true;
+                    dragOk = true;
                     s.isDragging = true;
                 }
 
             } else if (s.shape === 'pen') {
                 //if (Math.abs(mx - s.penPoints[i].x) < 0.005 || Math.abs(my - s.penPoints[i].y) < 0.005) {
                 if (mx < s.maxX && mx > s.minX && my < s.maxY && my > s.minY) {
-                    dragok = true;
+                    dragOk = true;
                     s.isDragging = true;
                 }
             } else if (s.shape === 'text') {
@@ -438,7 +444,7 @@ $(document).ready(function() {
                 var y = s.y + Number(s.size);
 
                 if (mx >= x && mx <= x + width && my <= y && my >= y - Number(s.size)) {
-                    dragok = true;
+                    dragOk = true;
                     s.isDragging = true;
                 }
             }
@@ -450,7 +456,7 @@ $(document).ready(function() {
 
 
     function undo() {
-        if (clickedshape === "text") {
+        if (clickedShape === "text") {
             typing = false;
             textbox.remove();
         }
@@ -544,10 +550,11 @@ $(document).ready(function() {
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                //ctx.clearRect(0, 0, canvas.width, canvas.height);
                 //console.log(data.title);
 
                 console.log('things are happening');
+                drawnShapes = [];
 
                 // The drawing was successfully saved
             },
@@ -655,17 +662,25 @@ $(document).ready(function() {
                     shape = new Rectangle(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
                     shape.width = objects[i].width;
                     shape.height = objects[i].height;
+                    shape.color = objects[i].color;
+                    shape.lineWidth = objects[i].lineWid;
+
                     break;
                 case "circle":
                     shape = new Circle(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
                     shape.radius = objects[i].radius;
                     shape.sAngle = objects[i].sAngle;
                     shape.eAngle = objects[i].eAngle;
+                    shape.color = objects[i].color;
+                    shape.lineWidth = objects[i].lineWidth;
+
                     break;
                 case "line":
                     shape = new Line(objects[i].x1, objects[i].y1, objects[i].color, objects[i].lineWidth);
                     shape.x2 = objects[i].x2;
                     shape.y2 = objects[i].y2;
+                    shape.color = objects[i].color;
+                    shape.lineWidth = objects[i].lineWidth;
                     break;
                 case "text":
                     shape = new Text(objects[i].x, objects[i].y);
@@ -680,6 +695,9 @@ $(document).ready(function() {
                     for (var j = 0; j < objects[i].penPoints.length; j++) {
                         shape.addPoint(objects[i].penPoints[j].x, objects[i].penPoints[j].y);
                     }
+
+                    shape.color = objects[i].color;
+                    shape.lineWidth = objects[i].lineWidth
                     break;
             }
             drawnShapes.push(shape);
