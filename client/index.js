@@ -663,12 +663,16 @@ $(document).ready(function() {
                     shape.eAngle = objects[i].eAngle;
                     break;
                 case "line":
-                    shape = new Line(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
+                    shape = new Line(objects[i].x1, objects[i].y1, objects[i].color, objects[i].lineWidth);
                     shape.x2 = objects[i].x2;
                     shape.y2 = objects[i].y2;
                     break;
                 case "text":
                     shape = new Text(objects[i].x, objects[i].y);
+                    shape.size = objects[i].size;
+                    shape.fonttype = objects[i].fonttype;
+                    shape.color = objects[i].color;
+                    shape.str = objects[i].str;
                     break;
                 case "pen":
                     console.log(objects[i].color);
