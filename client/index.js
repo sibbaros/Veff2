@@ -1,28 +1,30 @@
-var drawnShapes = [];
-var undoneShapes = [];
-var currShape = undefined;
-
-var isDrawing = false;
-var clickedShape = undefined;
-var clickedEvent = undefined;
-var inputbox = undefined;
-var textbox = undefined;
-var typing = false;
-
-var dragOk = false;
-var dragX;
-var dragY;
-var mouseStartX;
-var mouseStartY;
-var startX;
-var startY;
-var val;
 
 
 $(document).ready(function() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
     //resizeCanvas();
+
+    var drawnShapes = [];
+    var undoneShapes = [];
+    var currShape = undefined;
+
+    var isDrawing = false;
+    var clickedShape = undefined;
+    var clickedEvent = undefined;
+    var inputbox = undefined;
+    var textbox = undefined;
+    var typing = false;
+    var selectUndone = false;
+
+    var dragOk = false;
+    var dragX;
+    var dragY;
+    var mouseStartX;
+    var mouseStartY;
+    var startX;
+    var startY;
+    var val;
 
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
@@ -31,6 +33,8 @@ $(document).ready(function() {
 
     document.getElementById('divtextbox').addEventListener('keypress', handleKeyPress);
     document.getElementById('divtextbox').addEventListener('keyup', handleKeyUp);
+
+    //Section 1: Shapes
 
     function Rectangle(x, y, width, height) {
         this.shape = 'rect';
@@ -100,12 +104,7 @@ $(document).ready(function() {
         this.penPoints = new Array(new Point(x, y));
         this.lineWidth = lineWidthSelector();
         this.isDragging = false;
-        if (clickedShape === "eraser") {
-            this.color = "white";
-        } else {
-            this.color = "#" + document.getElementById("colorPicker").value;
-
-        }
+        this.color = "#" + document.getElementById("colorPicker").value;
     }
 
     Pen.prototype.addPoint = function(x, y) {
@@ -188,6 +187,8 @@ $(document).ready(function() {
         textbox.focus();
     }
 
+    //Section 2: Key presses
+
     function handleKeyPress(e) {
         if (typing) {
             if (e.which == 13 || e.keyCode == 13) {
@@ -206,6 +207,8 @@ $(document).ready(function() {
             textbox.remove();
         }
     }
+
+    //Section 3: Click functions
 
     $(".Shape").click(function() {
         clickedShape = $(this).attr('id');
@@ -244,11 +247,14 @@ $(document).ready(function() {
         }
     })
 
+
+    //Section 4: Mouse functions
+
     $("#myCanvas").mousedown(function(e) {
         e.preventDefault();
         e.stopPropagation();
-        var x = e.screenX - offsetX;
-        var y = e.screenY - offsetY;
+        var x = e.clientX - offsetX;
+        var y = e.clientY - offsetY;
 
         isDrawing = true;
 
@@ -259,6 +265,9 @@ $(document).ready(function() {
 
         if (clickedShape === "select") {
             select(mx, my);
+        }
+        if (clickedShape === "eraser") {
+            eraser(mx, my);
         }
 
 
@@ -285,11 +294,6 @@ $(document).ready(function() {
                 currShape = new Pen(x, y);
                 isDrawing = true;
                 break;
-            case "eraser":
-                currShape = new Pen(x, y);
-                break;
-                //currShape.draw();
-                //redraw();
         }
     });
 
@@ -363,7 +367,7 @@ $(document).ready(function() {
                 var y2 = y;
                 currShape.x2 = x2;
                 currShape.y2 = y2;
-            } else if (clickedShape === "pen" || clickedShape === "eraser") {
+            } else if (clickedShape === "pen") {
                 currShape.addPoint(x, y);
             }
 
@@ -394,13 +398,8 @@ $(document).ready(function() {
         redraw();
     });
 
-    function redraw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (var i = 0; i < drawnShapes.length; i++) {
-            drawnShapes[i].draw();
-        }
 
-    }
+    //Section 5: Event functions
 
     function select(mx, my) {
         isDrawing = false;
@@ -410,10 +409,9 @@ $(document).ready(function() {
             // decide if the shape is a rect or circle               
             if (s.shape === 'rect') {
                 // test if the mouse is inside this rect
-                if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
+                if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {              
                     dragOk = true;
                     s.isDragging = true;
-                    //ctx.setLineDash([6]);
                 }
 
             } else if (s.shape === 'circle') {
@@ -454,8 +452,53 @@ $(document).ready(function() {
     }
 
 
+    function eraser(mx, my) {
+        isDrawing = false;
+
+        for (var i = 0; i < drawnShapes.length; i++) {
+            var s = drawnShapes[i];
+            // decide if the shape is a rect or circle               
+            if (s.shape === 'rect') {
+                // test if the mouse is inside this rect
+                if (mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height) {
+                   drawnShapes.splice(i, 1);
+                };
+
+            } else if (s.shape === 'circle') {
+                if (Math.pow(mx - s.x, 2) + Math.pow(my - s.y, 2) < Math.pow(s.radius, 2)) {
+                    drawnShapes.splice(i, 1);
+                }
+
+            } else if (s.shape === 'line') {
+                var epsilon = 5;
+                var m = (s.y2 - s.y1) / (s.x2 - s.x1);
+                var b = s.y1 - m * s.x1;
+                if (Math.abs(my - (m * mx + b)) < epsilon) {
+                    drawnShapes.splice(i, 1);
+                }
+
+            } else if (s.shape === 'pen') {
+                if (mx < s.maxX && mx > s.minX && my < s.maxY && my > s.minY) {
+                    drawnShapes.splice(i, 1);;
+                }
+            } else if (s.shape === 'text') {
+                var metrics = ctx.measureText(s.str);
+                var width = metrics.width;
+                var x = s.x + Number(s.size);
+                var y = s.y + Number(s.size);
+
+                if (mx >= x && mx <= x + width && my <= y && my >= y - Number(s.size)) {
+                    drawnShapes.splice(i, 1);
+                }
+            }
+        }
+        mouseStartX = mx;
+        mouseStartY = my;
+    }
+
 
     function undo() {
+
         if (clickedShape === "text") {
             typing = false;
             textbox.remove();
@@ -478,50 +521,7 @@ $(document).ready(function() {
     }
 
 
-
-    function lineWidthSelector() {
-        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
-
-
-        ctx.lineJoin = ctx.lineCap = "round";
-        if (lineSizeSelector === "Thin") {
-            lineSize = 1;
-        } else if (lineSizeSelector === "Medium") {
-            lineSize = 10;
-        } else if (lineSizeSelector === "Bold") {
-            lineSize = 40;
-        }
-
-
-        //console.log(lineSize);
-        return lineSize;
-    }
-
-    /*function resizeCanvas() {
-        /*ctx.canvas.width = window.innerWidth;
-        if (ctx.canvas.height < window.innerHeight) {
-            ctx.canvas.height = window.innerHeight;
-        }
-        var ratio = canvas.width / canvas.height;
-
-        var width = window.innerWidth - 5;
-        var height = window.innerHeight - 5;
-
-        if (width / height > ratio)
-            width = height * ratio;
-        else
-            height = width / ratio;
-
-        canvas.style.width = width;
-        canvas.style.height = height;
-
-        canvas.style.top = (window.innerHeight - height) / 2;
-        canvas.style.left = (window.innerWidth - width) / 2;
-    }*/
-
-
-
-    function loadDoc() {
+    /*function loadDoc() {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState === 4 && this.status === 200) {
@@ -530,13 +530,15 @@ $(document).ready(function() {
         };
         xhttp.open("GET", "ajax_info.txt", true);
         xhttp.send();
-    }
+    }*/
+
+    //Section 6: Saving and loading
 
     var url = "http://localhost:3000/api/drawings";
 
     $(".Save").click(function() {
-        //var val = document.getElementById("sTitle").val;
         val = $('#sTitle').val();
+        document.getElementById("sTitle").value = ' ';
 
         var JSONdrawnShapes = JSON.stringify(drawnShapes);
         var drawing = {
@@ -550,17 +552,13 @@ $(document).ready(function() {
             url: url,
             data: JSON.stringify(drawing),
             success: function(data) {
-                //ctx.clearRect(0, 0, canvas.width, canvas.height);
-                //console.log(data.title);
 
-                console.log('things are happening');
                 drawnShapes = [];
 
                 // The drawing was successfully saved
             },
             error: function(xhr, err) {
                 console.log('Error occurred in the operation');
-                //console.log(data);
                 // The drawing could NOT be saved
             }
         });
@@ -573,7 +571,6 @@ $(document).ready(function() {
             var title = data[i]["title"];
             var id = data[i]["id"];
             html += "<li class='canvasDrawing' value=" + id + ' "><a href= #>' + title + "</a></li>";
-            //$(".dropdown-menu").append(html);
 
         }
         return html;
@@ -595,25 +592,6 @@ $(document).ready(function() {
             success: function(data) {
                 var savedList = showSavedList(data);
                 $(savedData).html(savedList);
-
-                //stórt lol á þrefalda forlúppu
-                /*console.log(data);
-                for (var i = 0; i < data.length; i++) {
-                    var penni = new Pen;
-                    for (var i = 0; i < data.length; i++) {
-                        for (var k = 0; k < data[i].title.length; k++) {
-                            for (var j = 0; j < data[i].title[k].penPoints.length; j++)
-                                penni.addPoint(data[i].title[k].penPoints[j].x, data[i].title[k].penPoints[j].y);
-                            //console.log(data[0].title[0].penPoints);
-                        }
-                    }
-
-                    penni.draw(); //data[i].content.draw();
-                    console.log(penni);*/
-
-                // The drawing was successfully saved
-                //console.log(data[0].title[0].penPoints);
-                //console.log("hi");
             },
             error: function(xhr, err) {
                 console.log('Error occurred in the operation ');
@@ -643,8 +621,6 @@ $(document).ready(function() {
                 drawnShapes = [];
                 redraw();
                 drawObjects(objects);
-                // console.log(objects);
-
             },
             error: function(xhr, err) {
                 console.log('Error occurred in the operation ');
@@ -690,7 +666,6 @@ $(document).ready(function() {
                     shape.str = objects[i].str;
                     break;
                 case "pen":
-                    console.log(objects[i].color);
                     shape = new Pen(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
                     for (var j = 0; j < objects[i].penPoints.length; j++) {
                         shape.addPoint(objects[i].penPoints[j].x, objects[i].penPoints[j].y);
@@ -705,96 +680,55 @@ $(document).ready(function() {
         redraw();
     }
 
+    //Section 7: Other
 
-
-
-
-
-
-    /*$("#load").click(function() {
-
-
-
-    var drawing = {
-        title: document.getElementById("sTitle"),
-        content: drawnShapes
-    };
-
-    var url = "http://localhost:3000/api/drawings";
-
-    $("#save").click(function() {
-
-        console.log(drawing);
-
-        $.ajax({
-            type: "POST",
-            contentType: "application/json; charset=utf-8",
-            url: url,
-            data: JSON.stringify(drawing),
-            success: function(data) {
-                //ctx.clearRect(0, 0, canvas.width, canvas.height);
-                console.log(data);
-                console.log('things are happening');
-                // The drawing was successfully saved
-            },
-            error: function(xhr, err) {
-                console.log('Error occurred in the operation');
-                // The drawing could NOT be saved
-            }
-        });
-
-    });
-
-        
-                console.log(data);
-                // The drawing was successfully saved
-            },
-            error: function(xhr, err) {
-                console.log('Error occurred in the operation ');
-                // The drawing could NOT be saved
-            }
-        });
-
-
-    });*
-
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: url,
-        data: JSON.stringify(drawing),
-        success: function(data) {
-            console.log(data);
-            // The drawing was successfully saved
-        },
-        error: function(xhr, err) {
-            console.log('Error occurred in the operation ');
-            // The drawing could NOT be saved
+    function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < drawnShapes.length; i++) {
+            drawnShapes[i].draw();
         }
-    });*/
 
-    // });
+    }
 
+    function lineWidthSelector() {
+        var lineSizeSelector = $('#selectLineWidth').find(':selected').text();
+
+
+        ctx.lineJoin = ctx.lineCap = "round";
+        if (lineSizeSelector === "Thin") {
+            lineSize = 1;
+        } else if (lineSizeSelector === "Medium") {
+            lineSize = 10;
+        } else if (lineSizeSelector === "Bold") {
+            lineSize = 40;
+        }
+
+        return lineSize;
+    }
+
+    function resizeCanvas() {
+        ctx.canvas.width = window.innerWidth - 30;
+        if (ctx.canvas.height < window.innerHeight) {
+            ctx.canvas.height = window.innerHeight - 200;
+        }
+        var ratio = canvas.width / canvas.height;
+
+        var width = window.innerWidth - 5;
+        var height = window.innerHeight - 5;
+
+        if (width / height > ratio)
+            width = height * ratio;
+        else
+            height = width / ratio;
+
+        canvas.style.width = width;
+        canvas.style.height = height;
+
+        canvas.style.top = (window.innerHeight - height) / 2;
+        canvas.style.left = (window.innerWidth - width) / 2;
+    }
+    resizeCanvas();
 
 });
 
 
-/*http://localhost:3000/api/drawings - GET
-Returns a list of all drawings. Each item in the list contains the properties id and title
- 
-http://localhost:3000/api/drawings/{id} - GET
-Returns a single drawing, both the title and id, as well as the content of the drawing, and the created date.
- 
-http://localhost:3000/api/drawings - POST
-Adds a single drawing to the in-memory database. The body of the request should 
-contain the following two properties: "title" and "content". Example:
-
-
-*/
-
-
-
-//git add .
-//git commit -m ""
-//git pull 
-//git push
