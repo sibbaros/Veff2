@@ -16,12 +16,13 @@ var mouseStartX;
 var mouseStartY;
 var startX;
 var startY;
+var val;
 
 
 $(document).ready(function() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
-    resizeCanvas();
+    //resizeCanvas();
 
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
@@ -248,7 +249,6 @@ $(document).ready(function() {
 
         var mx = e.clientX - offsetX; //parseInt(e.clientX - offsetX);
         var my = e.clientY - offsetY;
-
         dragok = false;
 
         if (clickedshape === "select") {
@@ -491,11 +491,11 @@ $(document).ready(function() {
         return lineSize;
     }
 
-    function resizeCanvas() {
+    /*function resizeCanvas() {
         /*ctx.canvas.width = window.innerWidth;
         if (ctx.canvas.height < window.innerHeight) {
             ctx.canvas.height = window.innerHeight;
-        }*/
+        }
         var ratio = canvas.width / canvas.height;
 
         var width = window.innerWidth - 5;
@@ -511,18 +511,9 @@ $(document).ready(function() {
 
         canvas.style.top = (window.innerHeight - height) / 2;
         canvas.style.left = (window.innerWidth - width) / 2;
-    }
+    }*/
 
 
-    var drawing = {
-
-        //Einhverra hluta vegna virðist þetta bara finna data.title þannig ég setti 
-        //drawnShapes þangað í bili :/
-        title: drawnShapes, //document.getElementById("sTitle").value,
-        content: drawnShapes
-    };
-
-    var url = "http://localhost:3000/api/drawings";
 
     function loadDoc() {
         var xhttp = new XMLHttpRequest();
@@ -535,19 +526,26 @@ $(document).ready(function() {
         xhttp.send();
     }
 
-    //console.log(drawing);
+    var url = "http://localhost:3000/api/drawings";
 
+    $(".Save").click(function() {
+        //var val = document.getElementById("sTitle").val;
+        val = $('#sTitle').val();
 
-    $("#save").click(function() {
+        var JSONdrawnShapes = JSON.stringify(drawnShapes);
+        var drawing = {
+            title: val,
+            content: JSONdrawnShapes
+        };
 
         $.ajax({
-            "type": "POST",
-            "contentType": "application/json; charset=utf-8",
-            "url": url,
-            "data": JSON.stringify(drawing),
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: url,
+            data: JSON.stringify(drawing),
             success: function(data) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                console.log(data.title);
+                //console.log(data.title);
 
                 console.log('things are happening');
 
@@ -562,21 +560,37 @@ $(document).ready(function() {
 
     });
 
+    function showSavedList(data) {
+        var html = "";
+        for (var i = 0; i < data.length; i++) {
+            var title = data[i]["title"];
+            var id = data[i]["id"];
+            html += "<li class='canvasDrawing' value=" + id + ' "><a href= #>' + title + "</a></li>";
+            //$(".dropdown-menu").append(html);
+
+        }
+        return html;
+    }
 
 
-
-
-    $("#load").click(function() {
+    $(".Load").click(function() {
+        var JSONdrawnShapes = JSON.stringify(drawnShapes);
+        var drawing = {
+            title: val,
+            content: JSONdrawnShapes
+        };
         $.ajax({
             type: "GET",
             contentType: "application/json; charset=utf-8",
             url: url,
             dataType: "json",
-            //data: JSON.stringify(drawing),
+            data: JSON.stringify(drawing),
             success: function(data) {
+                var savedList = showSavedList(data);
+                $(savedData).html(savedList);
 
                 //stórt lol á þrefalda forlúppu
-                console.log(data);
+                /*console.log(data);
                 for (var i = 0; i < data.length; i++) {
                     var penni = new Pen;
                     for (var i = 0; i < data.length; i++) {
@@ -588,8 +602,8 @@ $(document).ready(function() {
                     }
 
                     penni.draw(); //data[i].content.draw();
-                    console.log(penni);
-                }
+                    console.log(penni);*/
+
                 // The drawing was successfully saved
                 //console.log(data[0].title[0].penPoints);
                 //console.log("hi");
@@ -598,8 +612,69 @@ $(document).ready(function() {
                 console.log('Error occurred in the operation ');
                 // The drawing could NOT be saved
             }
+
         });
     });
+
+    $(document).on('click', '.canvasDrawing', function() {
+        var id = $(this).val();
+        console.log("id: " + id);
+        getDrawing(id);
+    });
+
+    function getDrawing(id) {
+        $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: "http://localhost:3000/api/drawings/" + id,
+            data: {
+                id: id
+            },
+            dataType: "json",
+            success: function(data) {
+                var objects = JSON.parse(data['content']);
+                drawnShapes = [];
+                redraw();
+                drawObjects(objects);
+                // console.log(objects);
+
+            },
+            error: function(xhr, err) {
+                console.log('Error occurred in the operation ');
+                // The drawing could NOT be saved
+            }
+
+        });
+    }
+
+    function drawObjects(objects) {
+        for (var i = 0; i < objects.length; i++) {
+            var shape = undefined;
+            switch (objects[i].shape) {
+                case "rect":
+                    shape = new Rect(objects[i].x, objects[i].y);
+                    break;
+                case "circle":
+                    shape = new Circle(objects[i].x, objects[i].y);
+                    break;
+                case "line":
+                    shape = new Line(objects[i].x, objects[i].y);
+                    break;
+                case "text":
+                    shape = new Text(objects[i].x, objects[i].y);
+                    break;
+                case "pen":
+                    console.log(objects[i].color);
+                    shape = new Pen(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
+                    for (var j = 0; j < objects[i].penPoints.length; j++) {
+                        shape.addPoint(objects[i].penPoints[j].x, objects[i].penPoints[j].y);
+                    }
+                    break;
+            }
+            drawnShapes.push(shape);
+        }
+        redraw();
+    }
 
 
 
@@ -641,7 +716,7 @@ $(document).ready(function() {
 
     });
 
-    
+        
                 console.log(data);
                 // The drawing was successfully saved
             },
