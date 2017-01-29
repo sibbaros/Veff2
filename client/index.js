@@ -652,13 +652,20 @@ $(document).ready(function() {
             var shape = undefined;
             switch (objects[i].shape) {
                 case "rect":
-                    shape = new Rect(objects[i].x, objects[i].y);
+                    shape = new Rectangle(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
+                    shape.width = objects[i].width;
+                    shape.height = objects[i].height;
                     break;
                 case "circle":
-                    shape = new Circle(objects[i].x, objects[i].y);
+                    shape = new Circle(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
+                    shape.radius = objects[i].radius;
+                    shape.sAngle = objects[i].sAngle;
+                    shape.eAngle = objects[i].eAngle;
                     break;
                 case "line":
-                    shape = new Line(objects[i].x, objects[i].y);
+                    shape = new Line(objects[i].x, objects[i].y, objects[i].color, objects[i].lineWidth);
+                    shape.x2 = objects[i].x2;
+                    shape.y2 = objects[i].y2;
                     break;
                 case "text":
                     shape = new Text(objects[i].x, objects[i].y);
